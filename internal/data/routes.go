@@ -1,0 +1,39 @@
+package data
+
+// RouteMap maps a route code to its full address
+type RouteMap map[string]string
+
+// Example initialization
+var Routes = RouteMap{
+	"JKT": "Gudang J&T Express Rw. Bokor, Jl. Husein Sastranegara No.65, RT.004/RW.004, Jurumudi, Kec. Benda, Kota Tangerang, Banten 15124",
+	"TGR": "Jl. Abdul Rahman Saleh No.37, RT.001/RW.004, Jurumudi, Kec. Benda, Kota Tangerang, Banten 15124",
+	"JAT": "DUNEX LOGISTICS SOLUTION , NO 12, RW.3, Papanggo, Kec. Tj. Priok, Jkt Utara, Daerah Khusus Ibukota Jakarta",
+	"DPK": "SPIL eCommerce Hub, Jl. Raya Jakarta-Bogor, Jatijajar, Kec. Tapos, Kota Depok, Jawa Barat 16415",
+	"BGR": "GATEWAY J&T BGR 999, Jalan, RT.04/RW.02, Kedunghalang, Bogor Utara, Bogor City, West Java 16158",
+	"BKI": "Gateway J&T Express Bekasi, RT.001/RW.008, Bantar Gebang, Kec. Bantar Gebang, Kota Bks, Jawa Barat 17111",
+	"CKR": "CKR777 J&T Gateway, Jl. Raya Citarik, Sertajaya, Kec. Cikarang Tim., Kabupaten Bekasi, Jawa Barat 17530",
+	"BDO": "Getway999 BDO, Jl. Soekarno Hatta No.408, Karasak, Kec. Astanaanyar, Kota Bandung, Jawa Barat 40243",
+	"BDG": "J&T BDO OUTGOING,  Jl. Mekar Raya, Mekar Mulya, Kec. Panyileukan, Kota Bandung, Jawa Barat 40292",
+	"CKP": "Gateway J&T CKP777,  Jl. Jend. Sudirman, Purwasari, Kec. Purwasari, Karawang, Jawa Barat 41373",
+	"CRN": "J&T Express New CRN777, Jl. Pronggol No.33, Pegambiran, Kec. Lemahwungkuk, Kota Cirebon, Jawa Barat 45113",
+	"SMI": "J&T GATEWAY SUKABUMI, Dayeuhluhur, Kec. Warudoyong, Kota Sukabumi, Jawa Barat 43291",
+	"TSK": "Gateway J&T TSK777, Jl. Gubernur Sewaka No.14, RT.04, Sambongjaya, Kec. Mangkubumi, Kab. Tasikmalaya, Jawa Barat 46181",
+	"SRG": "J&T Semarang Gateway, Jl. Siliwangi, Krapyak, Kec. Semarang Barat, Kota Semarang, Jawa Tengah 50177",
+	"PTI": "J&T Express Gateway PTI777, Dapur, Ngembal Kulon, Kec. Jati, Kabupaten Kudus, Jawa Tengah 59341",
+	"TGL": "J&T Express Gateway TGL777, Jl. Mataram No.7, Muarareja, Kec. Tegal Bar., Kota Tegal, Jawa Tengah 52117",
+	"JOG": "Jl. Kusuma Bangsa, Singosaren III, Singosaren, Kec. Banguntapan, Kabupaten Bantul, Daerah Istimewa Yogyakarta 55193",
+	"SOC": "FRQ8+687, Solerejo, Wonorejo, Kec. Gondangrejo, Kabupaten Karanganyar, Jawa Tengah 57188",
+	"MDN": "J&T Madiun, Jl. Basuki Rahmad No.5, Sukosari, Kec. Kartoharjo, Kota Madiun, Jawa Timur 63119",
+	"GSK": "Gateway GSK 777, Dusun Gading, Cangkir, Kec. Driyorejo, Kabupaten Gresik, Jawa Timur 61177",
+	"SUB": "J&T Gateway Surabaya, Jl. Raya Ir. H.Juanda, RT.021/RW.006, Semawalang, Semambung, Kec. Gedangan, Kabupaten Sidoarjo, Jawa Timur 61214",
+	"PRO": "J&T PRO777 GATEWAY, Jl. Anggrek, Pilang, Kec. Kademangan, Kota Probolinggo, Jawa Timur 67225",
+	"JBR": "J&T Express Gateway JBR777, Jl. Wolter Monginsidi No.884, Langsepam, Rowo Indah, Kec. Ajung, Kabupaten Jember, Jawa Timur 68175",
+	"MLG": "MLG777, Jl. Ki Ageng Gribig No.344, Kedungkandang, Kec. Kedungkandang, Kota Malang, Jawa Timur 65137",
+	"PLM": "Gateway J&T Express Palembang , Sukajadi, Kec. Talang Klp., Kab. Banyuasin, Sumatera Selatan 30961",
+	"PDG": "J&T Express Gateway (PDG999), Kasang, Kec. Batang Anai, Kabupaten Padang Pariaman, Sumatera Barat 25586",
+	"TKG": "TKG999 J&T GATEWAY , Jl. P. Tirtayasa, Campang Raya, Kec. Sukabumi, Kota Bandar Lampung, Lampung",
+	"DPS": "Gateway J&T DPS, Jl. Bypass Ngurah Rai No.754, Pemogan, Denpasar Selatan, Kota Denpasar, Bali 80221",
+	"PKU": "Gateway JNT Express PKU999 , Air Hitam, Kec. Payung Sekaki, Kota Pekanbaru, Riau 28291",
+	"JRT": "VV6R+PGF, RT.10/RW.6, Sungai Bambu, Kec. Tj. Priok, Jkt Utara, Daerah Khusus Ibukota Jakarta 14330",
+	"SEG": "Jl. Industri Raya III No.7 Blok AH, Sukadamai, Cikupa, Tangerang Regency, Banten 15710",
+}

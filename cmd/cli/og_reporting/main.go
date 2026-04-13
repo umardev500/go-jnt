@@ -1,0 +1,145 @@
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"os"
+	"regexp"
+	"strconv"
+	"strings"
+
+	"github.com/rs/zerolog/log"
+	"github.com/umardev500/jnt-report/internal/config"
+	"github.com/umardev500/jnt-report/internal/detail"
+	"github.com/umardev500/jnt-report/internal/downloader"
+	"github.com/umardev500/jnt-report/internal/excel"
+	"github.com/umardev500/jnt-report/internal/reporting"
+	"github.com/umardev500/jnt-report/internal/route"
+	"github.com/umardev500/jnt-report/internal/types"
+)
+
+// LoadGatewayRoutes reads a JSON file and unmarshals its content into GatewayRoutes.
+func loadGatewayRoutes(filename string) (types.GatewayRoutes, error) {
+	file, err := os.Open(filename)
+	if err != nil {
+		return nil, fmt.Errorf("error opening file: %w", err)
+	}
+	defer file.Close()
+
+	bytes, err := ioutil.ReadAll(file)
+	if err != nil {
+		return nil, fmt.Errorf("error reading file: %w", err)
+	}
+
+	var data types.GatewayRoutes
+	err = json.Unmarshal(bytes, &data)
+	if err != nil {
+		return nil, fmt.Errorf("error parsing JSON: %w", err)
+	}
+
+	return data, nil
+}
+
+func main() {
+	ex := excel.Open(config.GetReportFilePath())
+
+	routes, err := loadGatewayRoutes(config.GetSKOFilePath())
+	if err != nil {
+		fmt.Println("Error loading gateway routes:", err)
+		return
+	}
+
+	rows := ex.GetRows()
+
+	for _, r := range rows {
+		kode := r.Values["KODE JMS"]
+		kode = strings.TrimSpace(kode)
+		if kode == "" {
+			log.Info().Msg("Skipping empty KODE JMS")
+			continue
+		}
+		log.Info().Msgf("Processing %s", kode)
+
+		// call API using kode...
+		res, err := detail.GetShipmentDetail(kode, config.AuthToken)
+		if err != nil {
+			fmt.Println("Error fetching shipment detail:", err)
+			return
+		}
+
+		shipment := res.Data.ShipmentDetail
+
+		var stop = new(detail.Stop)
+		for _, r := range shipment.TmsShipmentStopVOList {
+			if r.NetworkCode == "BTN777" {
+				stop = &r
+				break
+			}
+		}
+		if stop == nil {
+			fmt.Println("No record found for BTN777")
+			return
+		}
+
+		// Destination
+		dest := shipment.TmsShipmentStopVOList[1]
+		sampaiDriverPtr := dest.ActualArrivalTime
+
+		var sampaiDriver string
+		if sampaiDriverPtr != nil {
+			sampaiDriver = (*sampaiDriverPtr)[11:]
+		}
+
+		re := regexp.MustCompile(`^([A-Z]{3}\d{3}(?:-[A-Z]{3}\d{3})+)`)
+		shipmentName := re.FindString(shipment.ShipmentName)
+
+		// find route
+		log.Info().Msgf("Finding route for %s : %s", res.Data.ShipmentDetail.EndName, *stop.PlannedDepartureHour)
+		rs := route.GetRitase(routes, res.Data.ShipmentDetail.EndName, *stop.PlannedDepartureHour)
+		fmt.Println(rs.StatusRute)
+
+		ex.SetValue(r.RowIndex, "JAM", *stop.PlannedDepartureHour)
+		ex.SetValue(r.RowIndex, "TANGGAL", *stop.PlannedDepartureDay)
+		ex.SetValue(r.RowIndex, "RUTE", shipmentName)
+		ex.SetValue(r.RowIndex, "RITASE", rs.StatusRute)
+		ex.SetValue(r.RowIndex, "NAMA", strings.ToUpper(shipment.DriverName))
+		ex.SetValue(r.RowIndex, "NO HP", shipment.DriverContact)
+		ex.SetValue(r.RowIndex, "VENDOR", shipment.CarrierName)
+		ex.SetValue(r.RowIndex, "NOPOL", shipment.PlateNumber)
+		if stop.AppDriverDeparture != nil {
+			ex.SetValue(r.RowIndex, "WAKTU KEBERANGKATAN APP DRIVER", (*stop.AppDriverDeparture)[11:])
+		}
+		ex.SetValue(r.RowIndex, "WAKTU SAMPAI APP DRIVER", sampaiDriver)
+		ex.SetValue(r.RowIndex, "JENIS MOBIL", shipment.VehicleTypeName)
+
+		// Get pivot info
+		// Step 1: Download shipment file
+		skipDownload := false
+		log.Info().Msgf("Downloading shipment file... %s", kode)
+		if err := downloader.DownloadShipmentFile(kode); err != nil {
+			fmt.Println("Error downloading shipment file:", err)
+			skipDownload = true
+		}
+		log.Info().Msg("Shipment file downloaded successfully!")
+
+		if skipDownload {
+			ex.SetValue(r.RowIndex, "KOLI", "0")
+			ex.SetValue(r.RowIndex, "ISI MUATAN", "0")
+			continue
+		}
+
+		// Step 2: Generate pivot report
+		report, err := reporting.GeneratePivotReport(config.GetExportedFilePath(), "Memuat dan membongkar ekspor in", true)
+		if err != nil {
+			fmt.Println("Error generating report:", err)
+			return
+		}
+
+		ex.SetValue(r.RowIndex, "KOLI", strconv.Itoa(report.TotalPivotRows))
+		totalMuatan := report.BlankBaggingCount + report.TotalWaybillCount
+		ex.SetValue(r.RowIndex, "ISI MUATAN", strconv.Itoa(totalMuatan))
+	}
+
+	ex.Save("public/report_updated.xlsx")
+}
