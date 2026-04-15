@@ -2,7 +2,8 @@ package config
 
 import "path/filepath"
 
-const AuthToken = "b4a9b100ba30472ca21854e9807fce8e"
+const AuthToken = "9f2eef81b7d5491ab9d9eb12af1a0a39"
+const AssetDir = `C:\Users\User\Projects\go-report\assets`
 
 func GetExportedFilePath() string {
 	baseDir := `C:\Users\User\Projects\go-report\public` // absolute path
