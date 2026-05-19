@@ -34,6 +34,7 @@ func GenateSuratJalan(ex *excel.ExcelFile, routes types.GatewayRoutes, code, tok
 
 	departureTime, err := time.Parse("2006-01-02 15:04:05", shipment.PlannedDepartureTime)
 	if err != nil {
+		fmt.Println("err sj")
 		log.Error().Err(err).Msg("invalid date")
 	}
 	rs := route.GetRitase(routes, shipment.EndName, departureTime.Format("15:04"))
@@ -55,11 +56,14 @@ func GenateSuratJalan(ex *excel.ExcelFile, routes types.GatewayRoutes, code, tok
 
 	ex.SetValue(16, "J", service)
 
+	// Service
+	ex.SetValue(3, "T", service)
+
 	// PREPARE THE EXCEL FILE
 	// Get pivot info
 	// Step 1: Download shipment file
 	log.Info().Msgf("Downloading shipment file... %s", code)
-	if err := downloader.DownloadShipmentFile(code); err != nil {
+	if err := downloader.DownloadShipmentFile(code, token); err != nil {
 		fmt.Println("Error downloading shipment file:", err)
 	}
 	log.Info().Msg("Shipment file downloaded successfully!")
@@ -81,7 +85,9 @@ func GenateSuratJalan(ex *excel.ExcelFile, routes types.GatewayRoutes, code, tok
 	ex.SetValue(21, "H", strconv.Itoa(report.TotalWaybillCount))
 	ex.SetValue(25, "H", strconv.Itoa(report.TotalWaybillCount+report.BlankBaggingCount))
 
-	ex.SetValue(10, "I", shipment.EndName)
+	dest := shipment.TmsShipmentStopVOList[1]
+
+	ex.SetValue(10, "I", dest.NetworkName)
 	address := data.Routes[routeCode]
 	ex.SetValue(11, "I", address)
 

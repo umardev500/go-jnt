@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -21,11 +22,22 @@ import (
 )
 
 func printExcel(filePath string) error {
-	cmd := exec.Command(
-		"C:\\Program Files\\Microsoft Office\\root\\Office16\\EXCEL.EXE",
-		filePath,
+	path := filepath.Join(
+		"C:\\", "Users", "User", "Projects", "go-report", filePath,
 	)
 
+	cmd := exec.Command(
+		"C:\\Program Files\\Microsoft Office\\root\\Office16\\EXCEL.EXE",
+		path,
+	)
+
+	// path := filepath.Join(
+	// 	"C:\\", "Users", "User", "Projects", "go-report", filePath,
+	// )
+
+	// auto.PrintSJ(path)
+
+	// return nil
 	return cmd.Run()
 }
 
@@ -124,6 +136,10 @@ func (s *Scanner) SetServiceFromFlag(eco bool) {
 
 func main() {
 	now := time.Now()
+	cfg, err := config.LoadConfig("config.yml")
+	if err != nil {
+		panic(err)
+	}
 
 	// Flags
 	flagEco := flag.Bool("eco", false, "use ECO service")
@@ -162,7 +178,7 @@ func main() {
 		ex,
 		routes,
 		scanner.Code,
-		config.AuthToken,
+		cfg.Token,
 		getFullName(admin),
 		scanner.Service,
 	)
@@ -197,6 +213,7 @@ func main() {
 	exHist.Save("assets/sj_history.xlsx")
 
 	// Print
+	fmt.Println("printing....")
 	if err := printExcel(sjOut); err != nil {
 		log.Error().Err(err).Msg("print failed")
 	}
@@ -238,15 +255,20 @@ func setPrintArea(ex *excel.ExcelFile) {
 }
 
 func buildOutputPath(now time.Time) string {
-	folder := fmt.Sprintf("generated/excel/sj/%s", now.Format("2006_01_02"))
+
+	folder := filepath.Join(
+		"generated", "excel", "sj",
+		now.Format("2006_01_02"),
+	)
 
 	if err := os.MkdirAll(folder, os.ModePerm); err != nil {
 		log.Fatal().Err(err).Msg("failed to create folder")
 	}
 
-	return fmt.Sprintf(
-		"%s/sj_print_%s.xlsm",
-		folder,
+	filename := fmt.Sprintf(
+		"sj_print_%s.xlsm",
 		now.Format("20060102_150405"),
 	)
+
+	return filepath.Join(folder, filename)
 }

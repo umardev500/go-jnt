@@ -9,7 +9,6 @@ import (
 	"os"
 
 	"github.com/rs/zerolog/log"
-	"github.com/umardev500/jnt-report/internal/config"
 )
 
 // ================= REQUEST =================
@@ -33,6 +32,7 @@ type shipmentResponse struct {
 		Records []struct {
 			ShipmentNo    string `json:"shipmentNo"`
 			ShipmentState int    `json:"shipmentState"`
+			PlateNumber   string `json:"plateNumber"`
 		} `json:"records"`
 	} `json:"data"`
 }
@@ -106,8 +106,16 @@ func GetShipmentCodes(
 
 		// skip deleted
 		if r.ShipmentState == 5 {
-			log.Info().Msgf("Skipping deleted shipment %s", r.ShipmentNo)
+			msg := fmt.Sprintf("ℹ️  Skipping deleted shipment %s", r.ShipmentNo)
+			fmt.Println(msg)
 			continue
+		}
+
+		// Log if plate number is dummy which is like B1234HQ
+		// Never skipped just log
+		if r.PlateNumber == "B1234HQ" {
+			msg := fmt.Sprintf("⚠️ Dummy plate number %s for shipment %s", r.PlateNumber, r.ShipmentNo)
+			fmt.Println(msg)
 		}
 
 		shipmentCodes = append(shipmentCodes, r.ShipmentNo)
@@ -174,6 +182,7 @@ func SyncManifest(
 	filename string,
 	routes []string,
 	date string,
+	token string,
 ) error {
 
 	// reset file each run
@@ -191,10 +200,11 @@ func SyncManifest(
 
 	for _, route := range routes {
 
+		fmt.Println()
 		fmt.Printf("🔎 Fetching codes for route %s\n", route)
 
 		codes, err := GetShipmentCodes(
-			config.AuthToken,
+			token,
 			1,
 			100,
 			route,

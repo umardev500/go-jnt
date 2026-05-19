@@ -42,6 +42,10 @@ func loadGatewayRoutes(filename string) (types.GatewayRoutes, error) {
 }
 
 func main() {
+	cfg, err := config.LoadConfig("config.yml")
+	if err != nil {
+		panic(err)
+	}
 	ex := excel.Open(config.GetReportFilePath())
 
 	routes, err := loadGatewayRoutes(config.GetSKOFilePath())
@@ -62,7 +66,7 @@ func main() {
 		log.Info().Msgf("Processing %s", kode)
 
 		// call API using kode...
-		res, err := detail.GetShipmentDetail(kode, config.AuthToken)
+		res, err := detail.GetShipmentDetail(kode, cfg.Token)
 		if err != nil {
 			fmt.Println("Error fetching shipment detail:", err)
 			return
@@ -113,11 +117,16 @@ func main() {
 		ex.SetValue(r.RowIndex, "WAKTU SAMPAI APP DRIVER", sampaiDriver)
 		ex.SetValue(r.RowIndex, "JENIS MOBIL", shipment.VehicleTypeName)
 
+		// Set scan kirim mobil
+		if stop.ScanTime != nil {
+			ex.SetValue(r.RowIndex, "WAKTU SCAN KIRIM MOBIL", (*stop.ScanTime)[11:])
+		}
+
 		// Get pivot info
 		// Step 1: Download shipment file
 		skipDownload := false
 		log.Info().Msgf("Downloading shipment file... %s", kode)
-		if err := downloader.DownloadShipmentFile(kode); err != nil {
+		if err := downloader.DownloadShipmentFile(kode, cfg.Token); err != nil {
 			fmt.Println("Error downloading shipment file:", err)
 			skipDownload = true
 		}

@@ -32,12 +32,12 @@ func wait(ms int) {
 
 // -------------------- API Steps --------------------
 
-func FetchBongkarMuat(shipmentNo string) (*BongkarMuatRecord, error) {
+func FetchBongkarMuat(shipmentNo string, token string) (*BongkarMuatRecord, error) {
 	url := fmt.Sprintf("https://jmsgw.jntexpress.id/transportation/trackingDeatil/loading/scan/list?shipmentNo=%s", shipmentNo)
 	headers := map[string]string{
 		"User-Agent":   "Go-http-client/1.1",
 		"Accept":       "application/json",
-		"authToken":    config.AuthToken,
+		"authToken":    token,
 		"lang":         "ID",
 		"langType":     "ID",
 		"timezone":     "GMT+0700",
@@ -60,12 +60,12 @@ func FetchBongkarMuat(shipmentNo string) (*BongkarMuatRecord, error) {
 	return nil, errors.New("no record found for BTN777")
 }
 
-func TriggerExport(record *BongkarMuatRecord) error {
+func TriggerExport(record *BongkarMuatRecord, token string) error {
 	url := "https://jmsgw.jntexpress.id/transportation/trackingDeatil/exportScanList"
 	headers := map[string]string{
 		"User-Agent":   "Go-http-client/1.1",
 		"Accept":       "application/json",
-		"authToken":    config.AuthToken,
+		"authToken":    token,
 		"lang":         "ID",
 		"langType":     "ID",
 		"timezone":     "GMT+0700",
@@ -86,11 +86,11 @@ func TriggerExport(record *BongkarMuatRecord) error {
 	return httpclient.PostJSON(url, headers, payload, &res)
 }
 
-func GetLastExportedRecordWithRetry(startTime, endTime string, maxRetries, delayMs int) (*ExportRecord, error) {
+func GetLastExportedRecordWithRetry(startTime, endTime string, maxRetries, delayMs int, token string) (*ExportRecord, error) {
 	headers := map[string]string{
 		"User-Agent":   "Go-http-client/1.1",
 		"Accept":       "application/json",
-		"authToken":    config.AuthToken,
+		"authToken":    token,
 		"lang":         "ID",
 		"langType":     "ID",
 		"timezone":     "GMT+0700",
@@ -116,12 +116,12 @@ func GetLastExportedRecordWithRetry(startTime, endTime string, maxRetries, delay
 	return nil, errors.New("export not ready")
 }
 
-func GetDownloadUrl(record *ExportRecord) (string, error) {
+func GetDownloadUrl(record *ExportRecord, token string) (string, error) {
 	url := "https://jmsgw.jntexpress.id/transportation/file/oss/getDownloadSignedUrl"
 	headers := map[string]string{
 		"User-Agent":   "Go-http-client/1.1",
 		"Accept":       "application/json",
-		"authToken":    config.AuthToken,
+		"authToken":    token,
 		"lang":         "ID",
 		"langType":     "ID",
 		"timezone":     "GMT+0700",
@@ -163,13 +163,13 @@ func DownloadFile(url, outputPath string) error {
 	return err
 }
 
-func DownloadShipmentFile(shipmentNo string) error {
-	record, err := FetchBongkarMuat(shipmentNo)
+func DownloadShipmentFile(shipmentNo string, token string) error {
+	record, err := FetchBongkarMuat(shipmentNo, token)
 	if err != nil {
 		return err
 	}
 
-	if err := TriggerExport(record); err != nil {
+	if err := TriggerExport(record, token); err != nil {
 		return err
 	}
 
@@ -188,12 +188,12 @@ func DownloadShipmentFile(shipmentNo string) error {
 	// startTime := "2026-04-08+00:00:00"
 	// endTime := "2026-04-08+23:59:59"
 
-	lastRecord, err := GetLastExportedRecordWithRetry(startOfDay.Format(layout), endOfDay.Format(layout), 10, 2000)
+	lastRecord, err := GetLastExportedRecordWithRetry(startOfDay.Format(layout), endOfDay.Format(layout), 10, 2000, token)
 	if err != nil {
 		return err
 	}
 
-	downloadUrl, err := GetDownloadUrl(lastRecord)
+	downloadUrl, err := GetDownloadUrl(lastRecord, token)
 	if err != nil {
 		return err
 	}

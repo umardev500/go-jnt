@@ -4,7 +4,9 @@ go 1.25.0
 
 require (
 	github.com/fatih/color v1.19.0
+	github.com/go-ole/go-ole v1.3.0
 	github.com/joho/godotenv v1.5.1
+	github.com/rs/cors v1.11.1
 	github.com/rs/zerolog v1.35.0
 	github.com/xuri/excelize/v2 v2.10.1
 	gopkg.in/yaml.v3 v3.0.1

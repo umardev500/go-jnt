@@ -20,6 +20,10 @@ func init() {
 }
 
 func main() {
+	cfg, err := config.LoadConfig("config.yml")
+	if err != nil {
+		panic(err)
+	}
 	log.Info().Msg("Starting JNT Report...")
 
 	// Flags
@@ -38,7 +42,7 @@ func main() {
 	// Steps 1-3: Optional group
 	if *withReport {
 		// Step 1: Download shipment file
-		if err := downloader.DownloadShipmentFile(shipmentNo); err != nil {
+		if err := downloader.DownloadShipmentFile(shipmentNo, cfg.Token); err != nil {
 			fmt.Println("Error downloading shipment file:", err)
 			return
 		}
@@ -56,7 +60,7 @@ func main() {
 	}
 
 	// Step 4: Always fetch shipment detail
-	res, err := detail.GetShipmentDetail(shipmentNo, config.AuthToken)
+	res, err := detail.GetShipmentDetail(shipmentNo, cfg.Token)
 	if err != nil {
 		fmt.Println("Error fetching shipment detail:", err)
 		return

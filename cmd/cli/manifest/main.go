@@ -24,6 +24,11 @@ func init() {
 }
 
 func main() {
+	cfg, err := config.LoadConfig("config.yml")
+	if err != nil {
+		panic(err)
+	}
+
 	if len(os.Args) < 2 {
 		panic("usage: go run main.go 2026-04-10")
 	}
@@ -31,16 +36,17 @@ func main() {
 	dateStr := os.Args[1] // 2026-04-10
 
 	// ✅ validate YYYY-MM-DD
-	_, err := time.Parse("2006-01-02", dateStr)
+	_, err = time.Parse("2006-01-02", dateStr)
 	if err != nil {
 		panic("invalid date format, expected YYYY-MM-DD")
 	}
 
 	// 🔥 LIST OF ROUTES
 	routes := []string{"BDO", "SRG", "SOC", "SUB", "BGR", "SEG", "BKI", "JKT", "JAT", "DPK"}
+	// routes := []string{"JKT"}
 	filename := "manifest.yml"
 
-	if err := manifest.SyncManifest(filename, routes, dateStr); err != nil {
+	if err := manifest.SyncManifest(filename, routes, dateStr, cfg.Token); err != nil {
 		log.Error().Err(err).Msg("failed to save routes")
 		return
 	}
@@ -57,13 +63,25 @@ func main() {
 
 	// 6. Recreate fresh working file (important)
 	if err := copyFile(templatePath, manifestPath); err != nil {
-		fmt.Printf("reset template: %w", err)
+		fmt.Printf("reset template: %v", err)
 	}
 
-	for sheet, codes := range codesBySheet {
-		for _, code := range codes {
+	log.Debug().
+		Interface("codes_by_sheet", codesBySheet).
+		Msg("loaded codes")
 
-			if err := runJob(sheet, code, codesBySheet); err != nil {
+	sheetNum := 0
+
+	for sheet, codes := range codesBySheet {
+		sheetNum++
+		fmt.Printf("%d. 🔎 Processing sheet: %s\n", sheetNum, sheet)
+
+		count := 0
+		for _, code := range codes {
+			count++
+			fmt.Printf("%d. 🔎 Processing code: %s\n", count, code)
+
+			if err := runJob(sheet, code, codesBySheet, cfg.Token); err != nil {
 				log.Error().
 					Err(err).
 					Str("sheet", sheet).
@@ -149,9 +167,9 @@ func parseArgs() (sheet, code string) {
 }
 
 // downloadShipment handles shipment file download
-func downloadShipment(code string) error {
+func downloadShipment(code string, token string) error {
 	log.Info().Str("code", code).Msg("downloading shipment file")
-	return downloader.DownloadShipmentFile(code)
+	return downloader.DownloadShipmentFile(code, token)
 }
 
 // processPivot reads and transforms pivot Excel data
@@ -168,19 +186,15 @@ func processPivot(path, sheet string) ([]pivot.PivotRow, error) {
 }
 
 // fetchShipmentDetail gets shipment detail from API
-func fetchShipmentDetail(code string) (*detail.ShipmentDetailResponse, error) {
-	return detail.GetShipmentDetail(code, config.AuthToken)
+func fetchShipmentDetail(code string, token string) (*detail.ShipmentDetailResponse, error) {
+	return detail.GetShipmentDetail(code, token)
 }
 
-func runJob(sheet, code string, codesBySheet CodeMap) error {
+func runJob(sheet, code string, codesBySheet CodeMap, token string) error {
 	templateSheet := "TEMPLATE"
 
-	log.Debug().
-		Interface("codes_by_sheet", codesBySheet).
-		Msg("loaded codes")
-
 	// Step 1: Download shipment file
-	if err := downloadShipment(code); err != nil {
+	if err := downloadShipment(code, token); err != nil {
 		return fmt.Errorf("download shipment: %w", err)
 	}
 
@@ -194,7 +208,7 @@ func runJob(sheet, code string, codesBySheet CodeMap) error {
 	}
 
 	// Step 3: Fetch shipment detail
-	data, err := fetchShipmentDetail(code)
+	data, err := fetchShipmentDetail(code, token)
 	if err != nil {
 		return fmt.Errorf("fetch shipment detail: %w", err)
 	}

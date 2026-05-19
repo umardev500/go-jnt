@@ -13,6 +13,7 @@ import (
 	"github.com/umardev500/jnt-report/internal/reporting"
 	"github.com/umardev500/jnt-report/internal/route"
 	"github.com/umardev500/jnt-report/internal/types"
+	"github.com/xuri/excelize/v2"
 )
 
 func GetLatestSequenceByDestination(f *excel.ExcelFile, targetDest, service string) (int, error) {
@@ -30,9 +31,11 @@ func GetLatestSequenceByDestination(f *excel.ExcelFile, targetDest, service stri
 		}
 
 		jadwalKeberangkatan := row.Values["Jadwal Keberangkatan"]
+		fmt.Println(jadwalKeberangkatan)
 
 		t, err := helper.ParseExcelDateTime(jadwalKeberangkatan)
 		if err != nil {
+			fmt.Println("err history 1")
 			log.Fatal().Err(err).Msg("invalid date")
 		}
 
@@ -87,6 +90,7 @@ func CreateHistory(ex *excel.ExcelFile, routes types.GatewayRoutes, dt *detail.S
 
 	departureTime, err := time.Parse("2006-01-02 15:04:05", planOperasi)
 	if err != nil {
+		fmt.Println("err history")
 		log.Err(err).Msg("invalid date")
 	}
 	rs := route.GetRitase(routes, shipment.EndName, departureTime.Format("15:04"))
@@ -105,7 +109,23 @@ func CreateHistory(ex *excel.ExcelFile, routes types.GatewayRoutes, dt *detail.S
 	ex.SetValue(newRow, "Colly", strconv.Itoa(report.TotalPivotRows))
 	ex.SetValue(newRow, "CW", strconv.Itoa(report.TotalWaybillCount))
 	ex.SetValue(newRow, "CW luar", strconv.Itoa(report.BlankBaggingCount))
-	ex.SetValue(newRow, "Waktu Rilis", now)
+	// ex.SetValue(newRow, "Waktu Rilis", now)
+	// ex.SetValue(newRow, "Waktu Rilis", now.Format("02/01/2006 15:04:05"))
+
+	fmtStr := "dd/mm/yyyy hh:mm:ss"
+	styleID, err := ex.File.NewStyle(&excelize.Style{
+		CustomNumFmt: &fmtStr,
+	})
+	if err != nil {
+		log.Error().Err(err).Msg("Error creating style")
+		return 0
+	}
+
+	cell := fmt.Sprintf("L%d", newRow)
+
+	ex.File.SetCellValue("Sheet1", cell, now)
+	ex.File.SetCellStyle("Sheet1", cell, cell, styleID)
+
 	// ex.File.SetCellValue("Sheet1", "L:"+strconv.Itoa(newRow), now)
 	ex.SetValue(newRow, "Layanan", service)
 	ex.SetValue(newRow, "Admin / SPV", admin)

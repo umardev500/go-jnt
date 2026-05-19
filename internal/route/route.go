@@ -35,5 +35,10 @@ func GetJenisPaket(status string) string {
 		return "REG"
 	}
 
+	// For balikan
+	if strings.Contains(s, "balikan") {
+		return "BALIKAN"
+	}
+
 	return "ADD"
 }

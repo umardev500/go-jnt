@@ -139,6 +139,14 @@ func insertPivotRow(
 	// E = count
 	_ = f.SetCellValue(sheet, fmt.Sprintf("E%d", rowIndex), r.Count)
 
+	// Log if count is zero
+	if r.Count == 0 {
+		fmt.Printf(
+			"\033[1;33m[WARN]\033[0m Zero count for Bagging: \033[1;36m%s\033[0m | Count: \033[1;31m%d\033[0m\n",
+			r.Bagging,
+			r.Count,
+		)
+	}
 	// F = optional (if needed, keep empty or fixed)
 	_ = f.SetCellValue(sheet, fmt.Sprintf("F%d", rowIndex), "EZ")
 
@@ -372,6 +380,8 @@ func BuildManifest(
 	blank := pivot.PivotRow{Bagging: "", Count: 0}
 	count := 0
 
+	fmt.Println("--------------------------------------------------")
+	fmt.Println("\033[1;34m[INFO]\033[0m Inserting pivot rows... start")
 	for _, r := range pivotRow {
 		count += r.Count
 
@@ -384,12 +394,18 @@ func BuildManifest(
 
 		err := insertPivotRow(outFile, sheet, insertRow, seq, r, style)
 		if err != nil {
+			fmt.Println("\033[1;31m[ERROR]\033[0m Insert pivot row failed")
 			return err
 		}
 
 		insertRow++
 		seq++
 	}
+	fmt.Printf(
+		"\033[1;32m[DONE]\033[0m Inserted pivot rows successfully | total=%d\n",
+		insertRow,
+	)
+	fmt.Println("--------------------------------------------------")
 
 	if insertRow > 11 {
 		endRow := insertRow - 1

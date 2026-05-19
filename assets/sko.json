@@ -13,11 +13,14 @@
   ],
   "JKT_GATEWAY": [
     { "cut_off": "22:00", "status_rute": "REGULER (SEPIHAK)" },
+    { "cut_off": "21:00", "status_rute": "REGULER (SEPIHAK)" },
+    { "cut_off": "00:00", "status_rute": "REGULER (SEPIHAK)" },
     { "cut_off": "02:00", "status_rute": "REGULER (SEPIHAK)" },
     { "cut_off": "02:30", "status_rute": "REGULER (SEPIHAK)" },
     { "cut_off": "03:00", "status_rute": "WAJIB (SEPIHAK)" },
     { "cut_off": "04:00", "status_rute": "REGULER (SEPIHAK)" },
-    { "cut_off": "05:00", "status_rute": "WAJIB (DUA PIHAK)" },
+    { "cut_off": "05:00", "status_rute": "BALIKAN" },
+    { "cut_off": "06:00", "status_rute": "REGULER (SEPIHAK)" },
     { "cut_off": "07:00", "status_rute": "REGULER (SEPIHAK)" },
     { "cut_off": "08:00", "status_rute": "WAJIB (SEPIHAK)" },
     { "cut_off": "08:01", "status_rute": "WAJIB (SEPIHAK)" },
@@ -26,27 +29,26 @@
   ],
   "SEG_GATEWAY": [
     { "cut_off": "00:00", "status_rute": "WAJIB (SEPIHAK)" },
-    { "cut_off": "07:00", "status_rute": "WAJIB (SEPIHAK)" },
-    { "cut_off": "18:00", "status_rute": "REGULER (SEPIHAK)" }
+    { "cut_off": "04:00", "status_rute": "REGULER (SEPIHAK)" },
+    { "cut_off": "07:00", "status_rute": "WAJIB (SEPIHAK)" }
   ],
   "BDO_GATEWAY": [
     { "cut_off": "01:00", "status_rute": "REGULER (SEPIHAK)" },
+    { "cut_off": "04:00", "status_rute": "REGULER (SEPIHAK)" },
     { "cut_off": "06:00", "status_rute": "REGULER (SEPIHAK)" },
     { "cut_off": "08:00", "status_rute": "WAJIB (DUA PIHAK)" }
   ],
   "BDG_GATEWAY": [
-    { "cut_off": "01:00", "status_rute": "REGULER (SEPIHAK)" },
-    { "cut_off": "06:00", "status_rute": "REGULER (SEPIHAK)" },
     { "cut_off": "08:00", "status_rute": "WAJIB (DUA PIHAK)" }
   ],
   "SOC_GATEWAY": [
-    { "cut_off": "05:00", "status_rute": "WAJIB (DUA PIHAK)" },
-    { "cut_off": "07:00", "status_rute": "REGULER (SEPIHAK)" },
+    { "cut_off": "05:00", "status_rute": "BALIKAN" },
     { "cut_off": "10:00", "status_rute": "WAJIB (SEPIHAK)" }
   ],
   "SRG_GATEWAY": [
     { "cut_off": "05:00", "status_rute": "REGULER (SEPIHAK)" },
-    { "cut_off": "10:00", "status_rute": "WAJIB (SEPIHAK)" }
+    { "cut_off": "10:00", "status_rute": "WAJIB (SEPIHAK)" },
+    { "cut_off": "20:00", "status_rute": "BALIKAN" }
   ],
   "SUB_GATEWAY": [
     { "cut_off": "01:00", "status_rute": "REGULER (SEPIHAK)" },

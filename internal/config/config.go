@@ -1,8 +1,13 @@
 package config
 
-import "path/filepath"
+import (
+	"os"
+	"path/filepath"
 
-const AuthToken = "9f2eef81b7d5491ab9d9eb12af1a0a39"
+	"gopkg.in/yaml.v3"
+)
+
+const AuthToken = "0fce2491fd23443bbc0a774956b93e62"
 const AssetDir = `C:\Users\User\Projects\go-report\assets`
 
 func GetExportedFilePath() string {
@@ -43,4 +48,70 @@ func GetSuratJalanPrintFilePath() string {
 func GetHistoryFilePath() string {
 	baseDir := `C:\Users\User\Projects\go-report\assets` // absolute path
 	return filepath.Join(baseDir, "sj_history.xlsx")
+}
+
+// ================= YAML STRUCT =================
+
+type Config struct {
+	Token   string               `yaml:"token"`
+	Vendors map[string][]Vehicle `yaml:"vendors"`
+}
+
+type Vehicle struct {
+	Plate string `yaml:"plate"`
+	Type  string `yaml:"type"`
+}
+
+// ================= LOAD CONFIG =================
+
+func LoadConfig(path string) (*Config, error) {
+	file, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	var cfg Config
+	if err := yaml.Unmarshal(file, &cfg); err != nil {
+		return nil, err
+	}
+
+	return &cfg, nil
+}
+
+// ================= EXTRACT PLATES (FLATTEN) =================
+
+func ExtractPlates(cfg *Config) []string {
+	var plates []string
+
+	for _, vehicles := range cfg.Vendors {
+		for _, v := range vehicles {
+			plates = append(plates, v.Plate)
+		}
+	}
+
+	return plates
+}
+
+// ================= OPTIONAL: FLAT VIEW (FOR REPORT) =================
+
+type FlatVehicle struct {
+	Vendor string
+	Plate  string
+	Type   string
+}
+
+func Flatten(cfg *Config) []FlatVehicle {
+	var out []FlatVehicle
+
+	for vendor, vehicles := range cfg.Vendors {
+		for _, v := range vehicles {
+			out = append(out, FlatVehicle{
+				Vendor: vendor,
+				Plate:  v.Plate,
+				Type:   v.Type,
+			})
+		}
+	}
+
+	return out
 }
