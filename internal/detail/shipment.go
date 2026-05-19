@@ -10,14 +10,15 @@ import (
 
 // Shipment represents the main shipment info
 type Shipment struct {
-	ShipmentName    string `json:"shipmentName"`
-	ShipmentNo      string `json:"shipmentNo"`
-	PlateNumber     string `json:"plateNumber"`
-	DriverName      string `json:"driverName"`
-	DriverContact   string `json:"driverContact"`
-	CarrierName     string `json:"carrierName"`
-	VehicleTypeName string `json:"vehicletypeName"`
-	EndName         string `json:"endName"`
+	ShipmentName         string `json:"shipmentName"`
+	ShipmentNo           string `json:"shipmentNo"`
+	PlateNumber          string `json:"plateNumber"`
+	DriverName           string `json:"driverName"`
+	DriverContact        string `json:"driverContact"`
+	CarrierName          string `json:"carrierName"`
+	VehicleTypeName      string `json:"vehicletypeName"`
+	PlannedDepartureTime string `json:"plannedDepartureTime"`
+	EndName              string `json:"endName"`
 }
 
 // Stop represents each stop
@@ -53,6 +54,8 @@ type ShipmentDetailResponse struct {
 			TmsShipmentStopVOList []Stop `json:"tmsShipmentStopVOList"`
 			PlannedDepartureTime  string `json:"plannedDepartureTime"`
 			ActualDepartureTime   string `json:"actualDepartureTime"`
+			ActualArrivalTime     string `json:"actualArrivalTime"`
+			TotalRuntime          int    `json:"totalRuntime"`
 		} `json:"shipmentDetail"`
 	} `json:"data"`
 }

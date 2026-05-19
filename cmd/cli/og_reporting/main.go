@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"os"
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/rs/zerolog/log"
 	"github.com/umardev500/jnt-report/internal/config"
@@ -103,8 +105,35 @@ func main() {
 		rs := route.GetRitase(routes, res.Data.ShipmentDetail.EndName, *stop.PlannedDepartureHour)
 		fmt.Println(rs.StatusRute)
 
-		ex.SetValue(r.RowIndex, "JAM", *stop.PlannedDepartureHour)
-		ex.SetValue(r.RowIndex, "TANGGAL", *stop.PlannedDepartureDay)
+		layout := "2006-01-02 15:04:05"
+		// departure, _ := time.Parse(layout, "2026-05-18 21:48:18")
+		// arrival, _ := time.Parse(layout, "2026-05-19 00:59:02")
+		departureStr := res.Data.ShipmentDetail.ActualDepartureTime
+		arrivalStr := res.Data.ShipmentDetail.ActualArrivalTime
+
+		departure, depErr := time.Parse(layout, departureStr)
+		arrival, arrErr := time.Parse(layout, arrivalStr)
+
+		fmt.Println("departure:", departure, "arrival:", arrival)
+
+		hasValidTime := depErr == nil && arrErr == nil &&
+			departureStr != "" && arrivalStr != "" &&
+			!departure.IsZero() && !arrival.IsZero()
+
+		ex.SetValue(r.RowIndex, "PLANNED DEPARTURE", res.Data.ShipmentDetail.PlannedDepartureTime)
+		ex.SetValue(r.RowIndex, "SLA", res.Data.ShipmentDetail.TotalRuntime)
+
+		if hasValidTime {
+			duration := arrival.Sub(departure)
+			minutes := int(math.Ceil(duration.Minutes()))
+			selisih := minutes - res.Data.ShipmentDetail.TotalRuntime
+
+			ex.SetValue(r.RowIndex, "AKTUAL", minutes)
+			ex.SetValue(r.RowIndex, "SELISIH", selisih)
+			if selisih > 0 {
+				ex.SetFontColor(r.RowIndex, "SELISIH", "FF0000")
+			}
+		}
 		ex.SetValue(r.RowIndex, "RUTE", shipmentName)
 		ex.SetValue(r.RowIndex, "RITASE", rs.StatusRute)
 		ex.SetValue(r.RowIndex, "NAMA", strings.ToUpper(shipment.DriverName))

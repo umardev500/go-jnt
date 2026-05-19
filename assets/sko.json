@@ -48,7 +48,8 @@
   "SRG_GATEWAY": [
     { "cut_off": "05:00", "status_rute": "REGULER (SEPIHAK)" },
     { "cut_off": "10:00", "status_rute": "WAJIB (SEPIHAK)" },
-    { "cut_off": "20:00", "status_rute": "BALIKAN" }
+    { "cut_off": "20:00", "status_rute": "BALIKAN" },
+    { "cut_off": "23:00", "status_rute": "BALIKAN" }
   ],
   "SUB_GATEWAY": [
     { "cut_off": "01:00", "status_rute": "REGULER (SEPIHAK)" },

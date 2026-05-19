@@ -108,3 +108,33 @@ func (e *ExcelFile) Save(path string) {
 		log.Fatal(err)
 	}
 }
+
+func (e *ExcelFile) SetFontColor(row int, header string, color string) {
+	colIdx, ok := e.HeaderMap[header]
+	if !ok {
+		log.Fatalf("Column %s not found", header)
+	}
+
+	colName, err := excelize.ColumnNumberToName(colIdx + 1)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	cell := colName + fmt.Sprint(row)
+
+	styleID, err := e.File.NewStyle(&excelize.Style{
+		Font: &excelize.Font{
+			Color: color,
+			Bold:  true,
+		},
+	})
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = e.File.SetCellStyle(e.SheetName, cell, cell, styleID)
+	if err != nil {
+		log.Fatal(err)
+	}
+}

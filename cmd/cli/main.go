@@ -3,7 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
+	"math"
 	"os"
+	"time"
 
 	"github.com/fatih/color"
 	"github.com/umardev500/jnt-report/internal/config"
@@ -112,13 +114,23 @@ func printShipmentDetail(res *detail.ShipmentDetailResponse) {
 	s := res.Data.ShipmentDetail
 
 	fmt.Println("============== SHIPMENT ==============")
-	fmt.Printf("Shipment Name   : %s\n", color.GreenString(s.ShipmentName))
-	fmt.Printf("Shipment No     : %s\n", color.GreenString(s.ShipmentNo))
-	fmt.Printf("Plate Number    : %s\n", color.GreenString(s.PlateNumber))
-	fmt.Printf("Driver Name     : %s\n", color.GreenString(s.DriverName))
-	fmt.Printf("Driver Contact  : %s\n", color.GreenString(s.DriverContact))
-	fmt.Printf("Carrier Name    : %s\n", color.GreenString(s.CarrierName))
-	fmt.Printf("Vehicle Type    : %s\n", color.GreenString(s.VehicleTypeName))
+	fmt.Printf("Shipment Name     : %s\n", color.GreenString(s.ShipmentName))
+	fmt.Printf("Shipment No       : %s\n", color.GreenString(s.ShipmentNo))
+	fmt.Printf("Plate Number      : %s\n", color.GreenString(s.PlateNumber))
+	fmt.Printf("Planned Departure : %s\n", coloredValue(&s.PlannedDepartureTime))
+	fmt.Printf("Driver Name       : %s\n", color.GreenString(s.DriverName))
+	fmt.Printf("Driver Contact    : %s\n", color.GreenString(s.DriverContact))
+	fmt.Printf("Carrier Name      : %s\n", color.GreenString(s.CarrierName))
+	fmt.Printf("Vehicle Type      : %s\n", color.GreenString(s.ActualDepartureTime))
+	fmt.Printf("Vehicle Type      : %s\n", color.GreenString(s.ActualArrivalTime))
+
+	layout := "2006-01-02 15:04:05"
+	departure, _ := time.Parse(layout, s.ActualDepartureTime)
+	arrival, _ := time.Parse(layout, s.ActualArrivalTime)
+
+	duration := arrival.Sub(departure)
+	minutes := int(math.Round(duration.Minutes()))
+	fmt.Println(duration, " ", minutes)
 
 	fmt.Println("\n=============== STOPS =================")
 	for i, stop := range s.TmsShipmentStopVOList {
