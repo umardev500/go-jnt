@@ -5,10 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/rs/cors"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/umardev500/jnt-report/internal/config"
+	"github.com/xuri/excelize/v2"
 )
 
 const reportURL = "https://jmsgw.jntexpress.id/transportation/tmsShipmentEvent/report"
@@ -45,7 +49,7 @@ type Record struct {
 	ActualBatchTime          *string  `json:"actualBatchTime"`
 	ActualDepartureTime      *string  `json:"actualDepartureTime"`
 	ActualStopTime           *string  `json:"actualStopTime"`
-	ActualUseTime            *int     `json:"actualUseTime"`
+	ActualUseTime            *string  `json:"actualUseTime"`
 	AgingType                *string  `json:"agingType"`
 	ArriveNetworkCode        string   `json:"arriveNetworkCode"`
 	ArriveNetworkName        string   `json:"arriveNetworkName"`
@@ -92,12 +96,12 @@ type Record struct {
 	UnLoadingScanTotalTime   *int     `json:"unLoadingScanTotalTime"`
 	UnScanTime               *string  `json:"unScanTime"`
 	UseTime                  int      `json:"useTime"`
-	UseWayTime               *int     `json:"useWayTime"`
+	UseWayTime               *string  `json:"useWayTime"`
 	VehicleDoorCnt           *int     `json:"vehicleDoorCnt"`
 	VehiclelineCode          string   `json:"vehiclelineCode"`
 	VehiclelineName          string   `json:"vehiclelineName"`
 	VehicletypeName          string   `json:"vehicletypeName"`
-	StationWaitingTime       *int     `json:"stationWaitingTime"`
+	StationWaitingTime       *string  `json:"stationWaitingTime"`
 	CubeNumber               *float64 `json:"cubeNumber"`
 	Promotion                int      `json:"promotion"`
 	Shifts                   int      `json:"shifts"`
@@ -159,6 +163,25 @@ type RequestPayload struct {
 	EndTime         string `json:"endTime"`
 	CountryID       string `json:"countryId"`
 	ShipmentName    string `json:"shipmentName,omitempty"`
+}
+
+type VehicleCheckPayload struct {
+	ShipmentNo  string `json:"shipmentNo"`
+	PlateNumber string `json:"plateNumber"`
+	VehicleType string `json:"vehicleType"`
+}
+
+type ExcelRow struct {
+	VehicleType string
+	Status      string
+}
+
+type VehicleCheckResult struct {
+	ShipmentNo  string `json:"shipmentNo"`
+	PlateNumber string `json:"plateNumber"`
+	VehicleType string `json:"vehicleType"`
+	Status      string `json:"status,omitempty"`
+	Found       bool   `json:"found"`
 }
 
 // ================== APP ==================
@@ -249,13 +272,12 @@ func (a *App) reportHandler(w http.ResponseWriter, r *http.Request) {
 	// log client info
 	clientIP := getClientIP(r)
 
-	fmt.Printf(
-		"[REQUEST] ip=%s method=%s path=%s ua=%s\n",
-		clientIP,
-		r.Method,
-		r.URL.Path,
-		r.UserAgent(),
-	)
+	log.Info().
+		Str("ip", clientIP).
+		Str("method", r.Method).
+		Str("path", r.URL.Path).
+		Str("ua", r.UserAgent()).
+		Msg("incoming request")
 
 	var req RequestPayload
 
@@ -279,7 +301,91 @@ func (a *App) reportHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (a *App) checkVehicleHandler(w http.ResponseWriter, r *http.Request) {
+	var payload []VehicleCheckPayload
+
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		http.Error(w, "invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	lookup, err := loadUnits("units.xlsx")
+	if err != nil {
+		http.Error(w, "failed to load excel", http.StatusInternalServerError)
+		return
+	}
+
+	results := make([]VehicleCheckResult, 0, len(payload))
+
+	for _, p := range payload {
+		row, found := lookup[p.PlateNumber]
+
+		if !found {
+			results = append(results, VehicleCheckResult{
+				ShipmentNo:  p.ShipmentNo,
+				PlateNumber: p.PlateNumber,
+				VehicleType: p.VehicleType,
+				Found:       false,
+			})
+			continue
+		}
+
+		if row.VehicleType != p.VehicleType {
+			results = append(results, VehicleCheckResult{
+				ShipmentNo:  p.ShipmentNo,
+				PlateNumber: p.PlateNumber,
+				VehicleType: p.VehicleType,
+				Status:      "vehicle type mismatch",
+				Found:       false,
+			})
+			continue
+		}
+
+		results = append(results, VehicleCheckResult{
+			ShipmentNo:  p.ShipmentNo,
+			PlateNumber: p.PlateNumber,
+			VehicleType: p.VehicleType,
+			Status:      row.Status,
+			Found:       true,
+		})
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]any{
+		"success": true,
+		"data":    results,
+	})
+}
+
 // ================== HELPERS ==================
+func loadUnits(filePath string) (map[string]ExcelRow, error) {
+	f, err := excelize.OpenFile(filePath)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	rows, err := f.GetRows("Sheet1")
+	if err != nil {
+		return nil, err
+	}
+
+	lookup := make(map[string]ExcelRow)
+
+	for i, row := range rows {
+		if i == 0 || len(row) < 4 {
+			continue
+		}
+
+		plate := row[1]
+		lookup[plate] = ExcelRow{
+			VehicleType: row[2],
+			Status:      row[3],
+		}
+	}
+
+	return lookup, nil
+}
 
 func applyDefaults(req *RequestPayload) {
 
@@ -308,6 +414,16 @@ func applyDefaults(req *RequestPayload) {
 	}
 }
 
+func init() {
+	// Pretty console logging
+	log.Logger = log.Output(
+		zerolog.ConsoleWriter{
+			Out:        os.Stdout,
+			TimeFormat: time.RFC3339,
+		},
+	)
+}
+
 // ================== MAIN ==================
 
 func main() {
@@ -321,6 +437,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/report", app.reportHandler)
+	mux.HandleFunc("/check-vehicle", app.checkVehicleHandler)
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},

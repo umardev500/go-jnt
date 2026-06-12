@@ -121,8 +121,9 @@ func printShipmentDetail(res *detail.ShipmentDetailResponse) {
 	fmt.Printf("Driver Name       : %s\n", color.GreenString(s.DriverName))
 	fmt.Printf("Driver Contact    : %s\n", color.GreenString(s.DriverContact))
 	fmt.Printf("Carrier Name      : %s\n", color.GreenString(s.CarrierName))
-	fmt.Printf("Vehicle Type      : %s\n", color.GreenString(s.ActualDepartureTime))
-	fmt.Printf("Vehicle Type      : %s\n", color.GreenString(s.ActualArrivalTime))
+	// fmt.Printf("Vehicle Type      : %s\n", color.GreenString(s.ActualDepartureTime))
+	fmt.Printf("Vehicle Type      : %s\n", color.GreenString(s.VehicleTypeName))
+	fmt.Printf("Percentage        : %s\n", "")
 
 	layout := "2006-01-02 15:04:05"
 	departure, _ := time.Parse(layout, s.ActualDepartureTime)

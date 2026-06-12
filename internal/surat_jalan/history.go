@@ -69,10 +69,11 @@ func GetLatestSequenceByDestination(f *excel.ExcelFile, targetDest, service stri
 	return count + 1, nil
 }
 
-func CreateHistory(ex *excel.ExcelFile, routes types.GatewayRoutes, dt *detail.ShipmentDetailResponse, report *reporting.ReportSummary, dest, service, admin string) int {
+func CreateHistory(ex *excel.ExcelFile, routes types.GatewayRoutes, dt *detail.ShipmentDetailResponse, report *reporting.ReportSummary, dest, service, admin string) (int, error) {
 	now := time.Now()
 	layout := "2006-01-02 15:04:05"
 	shipment := dt.Data.ShipmentDetail
+	origin := shipment.TmsShipmentStopVOList[0]
 	routeCode := detail.GetRouteCode(dt)
 
 	seq, _ := GetLatestSequenceByDestination(ex, dest, service)
@@ -88,6 +89,39 @@ func CreateHistory(ex *excel.ExcelFile, routes types.GatewayRoutes, dt *detail.S
 		panic(err)
 	}
 
+	lastValues := rows[lastRow-1].Values
+
+	green := "\033[32m"
+	cyan := "\033[36m"
+	yellow := "\033[33m"
+	reset := "\033[0m"
+
+	fmt.Println("=== Last Row Values ===")
+	fmt.Printf("%sCW%s      : %v\n", green, reset, lastValues["CW"])
+	fmt.Printf("%sColly%s   : %v\n", cyan, reset, lastValues["Colly"])
+	fmt.Printf("%sCW Luar%s : %v\n", yellow, reset, lastValues["CW luar"])
+
+	// New data
+	fmt.Println("=== New Data ===")
+	fmt.Printf("%sCW%s      : %v\n", green, reset, report.TotalWaybillCount)
+	fmt.Printf("%sColly%s   : %v\n", cyan, reset, report.TotalPivotRows)
+	fmt.Printf("%sCW Luar%s : %v\n", yellow, reset, report.BlankBaggingCount)
+
+	cw, err := strconv.Atoi(lastValues["CW"])
+	if err != nil {
+		return 0, fmt.Errorf("invalid CW value in lastValues: %v", err)
+	}
+
+	sameCW := cw == report.TotalWaybillCount
+
+	if sameCW {
+		log.Error().Msg("CW is the same, skipping")
+		return 0, fmt.Errorf("CW is the same, skipping")
+	}
+
+	// Make log data for ok tasks
+	log.Info().Msg("=== OK ===")
+
 	departureTime, err := time.Parse("2006-01-02 15:04:05", planOperasi)
 	if err != nil {
 		fmt.Println("err history")
@@ -97,6 +131,14 @@ func CreateHistory(ex *excel.ExcelFile, routes types.GatewayRoutes, dt *detail.S
 	jenisPaket := route.GetJenisPaket(rs.StatusRute)
 	fmt.Println("Jenis: ", jenisPaket, rs.StatusRute)
 
+	var appTrackDepartureTime time.Time
+	if origin.ActualDepartureTime != nil {
+		appTrackDepartureTime, err = time.Parse(layout, *origin.ActualDepartureTime)
+		if err != nil {
+			log.Error().Err(err).Msg("Error parsing app track departure time")
+		}
+	}
+
 	f.InsertRows("Sheet1", newRow, 1)
 	ex.SetValue(newRow, "No.Surat Jalan", noSurat)
 	ex.SetValue(newRow, "Tanggal Operasi", planDate)
@@ -104,8 +146,8 @@ func CreateHistory(ex *excel.ExcelFile, routes types.GatewayRoutes, dt *detail.S
 	ex.SetValue(newRow, "Plat Nomor", shipment.PlateNumber)
 	ex.SetValue(newRow, "Jenis Mobil", shipment.VehicleTypeName)
 	ex.SetValue(newRow, "Jenis Trip", strconv.Itoa(seq))
-	ex.SetValue(newRow, "Jadwal Keberangkatan", planDate)
-	ex.SetValue(newRow, "Waktu Berangkat Mobil", planDate.Format("15:04")+" / "+jenisPaket)
+	// ex.SetValue(newRow, "Jadwal Keberangkatan", planDate)
+	ex.SetValue(newRow, "Waktu Berangkat Mobil", appTrackDepartureTime.Format("15:04")+" / "+jenisPaket)
 	ex.SetValue(newRow, "Colly", strconv.Itoa(report.TotalPivotRows))
 	ex.SetValue(newRow, "CW", strconv.Itoa(report.TotalWaybillCount))
 	ex.SetValue(newRow, "CW luar", strconv.Itoa(report.BlankBaggingCount))
@@ -118,12 +160,26 @@ func CreateHistory(ex *excel.ExcelFile, routes types.GatewayRoutes, dt *detail.S
 	})
 	if err != nil {
 		log.Error().Err(err).Msg("Error creating style")
-		return 0
+		return 0, err
 	}
 
 	cell := fmt.Sprintf("L%d", newRow)
 
 	ex.File.SetCellValue("Sheet1", cell, now)
+	ex.File.SetCellStyle("Sheet1", cell, cell, styleID)
+
+	// Set jadwal keberangkatan to use date style
+
+	fmtStr = "dd/mm/yyyy"
+	styleID, err = ex.File.NewStyle(&excelize.Style{
+		CustomNumFmt: &fmtStr,
+		Alignment: &excelize.Alignment{
+			Horizontal: "right",
+			Vertical:   "center", // optional
+		},
+	})
+	cell = fmt.Sprintf("G%d", newRow)
+	ex.File.SetCellValue("Sheet1", cell, appTrackDepartureTime.Format("02/01/2006"))
 	ex.File.SetCellStyle("Sheet1", cell, cell, styleID)
 
 	// ex.File.SetCellValue("Sheet1", "L:"+strconv.Itoa(newRow), now)
@@ -132,5 +188,5 @@ func CreateHistory(ex *excel.ExcelFile, routes types.GatewayRoutes, dt *detail.S
 	ex.SetValue(newRow, "Vendor", helper.MapVendor(shipment.CarrierName))
 	ex.SetValue(newRow, "Kode Tugas", shipment.ShipmentNo)
 
-	return seq
+	return seq, nil
 }

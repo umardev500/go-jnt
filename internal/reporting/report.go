@@ -3,6 +3,7 @@ package reporting
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/xuri/excelize/v2"
 )
@@ -17,7 +18,23 @@ type ReportSummary struct {
 	OutputFile        string `json:"output_file"`
 }
 
+func copyFile(src, dst string) error {
+	input, err := os.ReadFile(src)
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(dst, input, 0644)
+}
+
 func GeneratePivotReport(filePath, sheetName string, createCopy bool) (*ReportSummary, error) {
+	// 🔥 DELETE FILE AFTER SAVE (SAFE HERE)
+	defer func(path string) {
+		err := os.Remove(path)
+		if err != nil {
+			log.Printf("failed to delete file: %v", err)
+		}
+	}(filePath)
+
 	f, err := excelize.OpenFile(filePath)
 	if err != nil {
 		return nil, err

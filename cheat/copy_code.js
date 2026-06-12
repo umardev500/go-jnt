@@ -23,6 +23,21 @@ copy(
     .join("\n")
 );
 
+// with log
+(() => {
+  const result = Array.from(document.querySelectorAll("table.el-table__body tr"))
+    .filter(row => {
+      const status = row.querySelector("td:nth-child(7)")?.innerText.trim().toLowerCase();
+      return status !== "dihapuskan";
+    })
+    .map(row => row.querySelector("td:nth-child(3)")?.innerText.trim())
+    .filter(text => text && !text.startsWith("JBGX"));
+
+  copy(result.join("\n"));
+
+  console.log(`Copied ${result.length} rows`);
+})();
+
 // Only JBGX
 copy(
   Array.from(document.querySelectorAll("table.el-table__body tr"))
@@ -31,6 +46,20 @@ copy(
     .join("\n")
 );
 
+// Exlude deleted
+(() => {
+  const result = Array.from(document.querySelectorAll("table.el-table__body tr"))
+    .filter(row => {
+      const status = row.querySelector("td:nth-child(7)")?.innerText.trim().toLowerCase();
+      return status !== "dihapuskan";
+    })
+    .map(row => row.querySelector("td:nth-child(3)")?.innerText.trim())
+    .filter(text => text && text.startsWith("JBGX"));
+
+  copy(result.join("\n"));
+
+  console.log(`Copied ${result.length} rows`);
+})();
 
 // 2026-05-04 21:59:00 nth-child 19
 copy((() => {
@@ -100,7 +129,7 @@ copy((() => {
 
       const col3 = tds[2]?.innerText.trim() || "";
       const col4 = tds[3]?.innerText.trim() || "";
-      const date  = tds[19]?.innerText.trim() || "";
+      const date = tds[19]?.innerText.trim() || "";
 
       return `${col3} ${col4} ${date}`.trim();
     })

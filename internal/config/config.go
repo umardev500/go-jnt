@@ -10,6 +10,11 @@ import (
 const AuthToken = "0fce2491fd23443bbc0a774956b93e62"
 const AssetDir = `C:\Users\User\Projects\go-report\assets`
 
+func GetUnitsFilePath() string {
+	baseDir := `C:\Users\User\Projects\go-report` // absolute path
+	return filepath.Join(baseDir, "units.xlsx")
+}
+
 func GetExportedFilePath() string {
 	baseDir := `C:\Users\User\Projects\go-report\public` // absolute path
 	return filepath.Join(baseDir, "exported_file.xlsx")

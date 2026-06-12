@@ -23,13 +23,23 @@ func GenateSuratJalan(ex *excel.ExcelFile, routes types.GatewayRoutes, code, tok
 		log.Error().Err(err).Str("Kode Tugas", code).Msg("Error fetching shipment detail")
 	}
 	shipment := dt.Data.ShipmentDetail
+	dest := shipment.TmsShipmentStopVOList[1]
+	origin := shipment.TmsShipmentStopVOList[0]
 
 	now := time.Now()
 	today := time.Now().Format("2006-01-02")
 	layout := "2006-01-02 15:04:05"
-	plannedDepartureTime, err := time.Parse(layout, shipment.PlannedDepartureTime)
-	if err != nil {
-		log.Error().Err(err).Msg("Error parsing planned departure time")
+	// plannedDepartureTime, err := time.Parse(layout, shipment.PlannedDepartureTime)
+	// if err != nil {
+	// 	log.Error().Err(err).Msg("Error parsing planned departure time")
+	// }
+
+	var appTrackDepartureTime time.Time
+	if origin.ActualDepartureTime != nil {
+		appTrackDepartureTime, err = time.Parse(layout, *origin.ActualDepartureTime)
+		if err != nil {
+			log.Error().Err(err).Msg("Error parsing app track departure time")
+		}
 	}
 
 	departureTime, err := time.Parse("2006-01-02 15:04:05", shipment.PlannedDepartureTime)
@@ -43,7 +53,7 @@ func GenateSuratJalan(ex *excel.ExcelFile, routes types.GatewayRoutes, code, tok
 
 	ex.SetValue(32, "C", admin)
 	ex.SetValue(9, "E", today)
-	ex.SetValue(10, "E", plannedDepartureTime.Format("15:04")+" / "+jenisPaket)
+	ex.SetValue(10, "E", appTrackDepartureTime.Format("15:04:05")+" / "+jenisPaket)
 	ex.SetValue(11, "E", shipment.PlateNumber)
 	ex.SetValue(12, "E", strings.ToUpper(shipment.DriverName))
 	ex.SetValue(13, "E", shipment.VehicleTypeName)
@@ -76,6 +86,8 @@ func GenateSuratJalan(ex *excel.ExcelFile, routes types.GatewayRoutes, code, tok
 	}
 
 	routeCode := detail.GetRouteCode(dt)
+	fmt.Println(report)
+	fmt.Println(report.TotalWaybillCount)
 
 	// INFO KOLI
 	ex.SetValue(21, "G", strconv.Itoa(report.TotalPivotRows))
@@ -84,8 +96,6 @@ func GenateSuratJalan(ex *excel.ExcelFile, routes types.GatewayRoutes, code, tok
 	ex.SetValue(20, "H", strconv.Itoa(report.BlankBaggingCount))
 	ex.SetValue(21, "H", strconv.Itoa(report.TotalWaybillCount))
 	ex.SetValue(25, "H", strconv.Itoa(report.TotalWaybillCount+report.BlankBaggingCount))
-
-	dest := shipment.TmsShipmentStopVOList[1]
 
 	ex.SetValue(10, "I", dest.NetworkName)
 	address := data.Routes[routeCode]

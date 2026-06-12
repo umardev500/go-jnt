@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/umardev500/jnt-report/internal/config"
 	"github.com/umardev500/jnt-report/internal/detail"
@@ -57,10 +58,10 @@ var adminData = map[string]Admin{
 	},
 	"UMAR": {
 		FullName: "UMAR",
-		Partner:  "ILHAM DIMAS NUGROHO",
+		Partner:  "WISNU JATI KUSUMA",
 	},
-	"ILHAM": {
-		FullName: "ILHAM DIMAS NUGROHO",
+	"WISNU JATI KUSUMA": {
+		FullName: "WISNU JATI KUSUMA",
 		Partner:  "UMAR",
 	},
 	"IMAM": {
@@ -96,6 +97,7 @@ func init() {
 	}
 
 	fmt.Println(os.Getenv("AUTH_TOKEN"))
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 
 }
 
@@ -187,7 +189,7 @@ func main() {
 	routeCode := detail.GetRouteCode(dt)
 
 	// Create history + sequence
-	seq := suratjalan.CreateHistory(
+	seq, err := suratjalan.CreateHistory(
 		exHist,
 		routes,
 		dt,
@@ -196,6 +198,10 @@ func main() {
 		scanner.Service,
 		fmt.Sprintf("%s / %s", getFullName(admin), getPartner(admin)),
 	)
+	if err != nil {
+		log.Error().Err(err).Msg("failed to create history")
+		return
+	}
 
 	// Generate document number
 	noSurat := generateNoSurat(routeCode, seq, now, scanner.Service)
