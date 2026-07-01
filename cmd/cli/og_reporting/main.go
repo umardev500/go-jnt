@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/joho/godotenv"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/umardev500/jnt-report/internal/config"
 	"github.com/umardev500/jnt-report/internal/detail"
@@ -41,6 +43,16 @@ func loadGatewayRoutes(filename string) (types.GatewayRoutes, error) {
 	}
 
 	return data, nil
+}
+
+func init() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal().Err(err)
+	}
+
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+
 }
 
 func main() {
@@ -141,14 +153,16 @@ func main() {
 		ex.SetValue(r.RowIndex, "VENDOR", shipment.CarrierName)
 		ex.SetValue(r.RowIndex, "NOPOL", shipment.PlateNumber)
 		if stop.AppDriverDeparture != nil {
-			ex.SetValue(r.RowIndex, "WAKTU KEBERANGKATAN APP DRIVER", (*stop.AppDriverDeparture)[11:])
+			// ex.SetValue(r.RowIndex, "WAKTU KEBERANGKATAN APP DRIVER", (*stop.AppDriverDeparture)[11:])
+			ex.SetValue(r.RowIndex, "WAKTU KEBERANGKATAN APP DRIVER", *stop.AppDriverDeparture)
 		}
 		ex.SetValue(r.RowIndex, "WAKTU SAMPAI APP DRIVER", sampaiDriver)
 		ex.SetValue(r.RowIndex, "JENIS MOBIL", shipment.VehicleTypeName)
 
 		// Set scan kirim mobil
 		if stop.ScanTime != nil {
-			ex.SetValue(r.RowIndex, "WAKTU SCAN KIRIM MOBIL", (*stop.ScanTime)[11:])
+			// ex.SetValue(r.RowIndex, "WAKTU SCAN KIRIM MOBIL", (*stop.ScanTime)[11:])
+			ex.SetValue(r.RowIndex, "WAKTU SCAN KIRIM MOBIL", *stop.ScanTime)
 		}
 
 		// Get pivot info

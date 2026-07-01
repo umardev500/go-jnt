@@ -19,5 +19,8 @@ info:
 cf:
 	cloudflared tunnel --url http://localhost:8080
 
+get_sj:
+	go run cmd/cli/get_sj/main.go
+
 %:
 	@:

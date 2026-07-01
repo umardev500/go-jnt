@@ -50,6 +50,7 @@ window.tableInterval = setInterval(() => {
             if (value17 === "TEMBAKAN") {
 
                 tds.forEach(td => {
+                    console.log('dark')
                     td.style.backgroundColor = isDark
                         ? "#78350f"
                         : "#fff7ed";

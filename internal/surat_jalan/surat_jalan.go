@@ -27,7 +27,7 @@ func GenateSuratJalan(ex *excel.ExcelFile, routes types.GatewayRoutes, code, tok
 	origin := shipment.TmsShipmentStopVOList[0]
 
 	now := time.Now()
-	today := time.Now().Format("2006-01-02")
+	// today := time.Now().Format("2006-01-02")
 	layout := "2006-01-02 15:04:05"
 	// plannedDepartureTime, err := time.Parse(layout, shipment.PlannedDepartureTime)
 	// if err != nil {
@@ -51,18 +51,20 @@ func GenateSuratJalan(ex *excel.ExcelFile, routes types.GatewayRoutes, code, tok
 	jenisPaket := route.GetJenisPaket(rs.StatusRute)
 	fmt.Println("Jenis: ", jenisPaket, rs.StatusRute)
 
-	ex.SetValue(32, "C", admin)
-	ex.SetValue(9, "E", today)
+	ex.SetValue(33, "C", admin)
+	ex.SetValue(9, "E", appTrackDepartureTime.Format("02-01-2006"))
 	ex.SetValue(10, "E", appTrackDepartureTime.Format("15:04:05")+" / "+jenisPaket)
 	ex.SetValue(11, "E", shipment.PlateNumber)
 	ex.SetValue(12, "E", strings.ToUpper(shipment.DriverName))
 	ex.SetValue(13, "E", shipment.VehicleTypeName)
 	ex.SetValue(14, "E", shipment.DriverContact)
-	ex.SetValue(15, "E", now.Format("15:04:05"))
+	// ex.SetValue(15, "E", now.Format("15:04:05"))
+	ex.SetValue(15, "E", now.Format("02/01/2006 15:04:05"))
 
-	ex.SetValue(18, "E", shipment.CarrierName)
+	ex.SetValue(19, "E", normalizeCompanyName(shipment.CarrierName))
 
 	ex.SetValue(17, "I", "Kode Tugas :"+code)
+	ex.SetValue(18, "I", "Kode Tugas :"+code)
 
 	ex.SetValue(16, "J", service)
 
@@ -90,16 +92,23 @@ func GenateSuratJalan(ex *excel.ExcelFile, routes types.GatewayRoutes, code, tok
 	fmt.Println(report.TotalWaybillCount)
 
 	// INFO KOLI
-	ex.SetValue(21, "G", strconv.Itoa(report.TotalPivotRows))
-	ex.SetValue(25, "G", strconv.Itoa(report.TotalPivotRows))
-	ex.SetValue(32, "G", strings.ToUpper(shipment.DriverName))
-	ex.SetValue(20, "H", strconv.Itoa(report.BlankBaggingCount))
-	ex.SetValue(21, "H", strconv.Itoa(report.TotalWaybillCount))
-	ex.SetValue(25, "H", strconv.Itoa(report.TotalWaybillCount+report.BlankBaggingCount))
+	ex.SetValue(22, "G", strconv.Itoa(report.TotalPivotRows))
+	ex.SetValue(26, "G", strconv.Itoa(report.TotalPivotRows))
+	ex.SetValue(33, "G", strings.ToUpper(shipment.DriverName))
+	ex.SetValue(21, "H", strconv.Itoa(report.BlankBaggingCount))
+	ex.SetValue(22, "H", strconv.Itoa(report.TotalWaybillCount))
+	ex.SetValue(26, "H", strconv.Itoa(report.TotalWaybillCount+report.BlankBaggingCount))
 
 	ex.SetValue(10, "I", dest.NetworkName)
 	address := data.Routes[routeCode]
 	ex.SetValue(11, "I", address)
 
 	return dt, report
+}
+
+func normalizeCompanyName(name string) string {
+	if strings.HasPrefix(name, "PT ") {
+		return strings.Replace(name, "PT ", "PT. ", 1)
+	}
+	return name
 }

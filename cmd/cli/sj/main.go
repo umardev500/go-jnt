@@ -136,6 +136,41 @@ func (s *Scanner) SetServiceFromFlag(eco bool) {
 	}
 }
 
+func checkDuplicateInColumnP(value string) error {
+	filePath := config.GetHistoryFilePath()
+
+	f, err := excelize.OpenFile(filePath)
+	if err != nil {
+		return fmt.Errorf("failed to open history file: %w", err)
+	}
+	defer func() {
+		_ = f.Close()
+	}()
+
+	sheetName := f.GetSheetName(0)
+	if sheetName == "" {
+		return fmt.Errorf("no sheet found")
+	}
+
+	rows, err := f.GetRows(sheetName)
+	if err != nil {
+		return fmt.Errorf("failed to read rows: %w", err)
+	}
+
+	for i, row := range rows {
+		// Column P = index 15 (0-based)
+		if len(row) <= 15 {
+			continue
+		}
+
+		if row[15] == value {
+			return fmt.Errorf("duplicate value found in column P at row %d: %s", i+1, value)
+		}
+	}
+
+	return nil
+}
+
 func main() {
 	now := time.Now()
 	cfg, err := config.LoadConfig("config.yml")
@@ -155,6 +190,11 @@ func main() {
 
 	code := args[0]
 	admin := "UMAR"
+
+	if err := checkDuplicateInColumnP(code); err != nil {
+		log.Fatal().Err(err).Msgf("duplicate code for %s", code)
+		return
+	}
 
 	// Load routes
 	routes, err := loadGatewayRoutes(config.GetSKOFilePath())
