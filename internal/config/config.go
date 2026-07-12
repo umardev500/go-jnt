@@ -15,6 +15,11 @@ func GetUnitsFilePath() string {
 	return filepath.Join(baseDir, "units.xlsx")
 }
 
+func GetVehicleFilePath() string {
+	baseDir := `C:\Users\User\Projects\go-report` // absolute path
+	return filepath.Join(baseDir, "ACTUAL_VEHICLE.xlsx")
+}
+
 func GetExportedFilePath() string {
 	baseDir := `C:\Users\User\Projects\go-report\public` // absolute path
 	return filepath.Join(baseDir, "exported_file.xlsx")

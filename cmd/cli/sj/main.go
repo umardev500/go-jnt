@@ -191,10 +191,10 @@ func main() {
 	code := args[0]
 	admin := "UMAR"
 
-	if err := checkDuplicateInColumnP(code); err != nil {
-		log.Fatal().Err(err).Msgf("duplicate code for %s", code)
-		return
-	}
+	// if err := checkDuplicateInColumnP(code); err != nil {
+	// 	log.Fatal().Err(err).Msg("Duplicate error")
+	// 	return
+	// }
 
 	// Load routes
 	routes, err := loadGatewayRoutes(config.GetSKOFilePath())
@@ -227,6 +227,12 @@ func main() {
 
 	// Extract route code safely
 	routeCode := detail.GetRouteCode(dt)
+	t, err := time.Parse("2006-01-02 15:04:05", dt.Data.ShipmentDetail.PlannedDepartureTime)
+	if err != nil {
+		panic(err)
+	}
+
+	filenameTime := t.Format("15_04")
 
 	// Create history + sequence
 	seq, err := suratjalan.CreateHistory(
@@ -251,7 +257,7 @@ func main() {
 	// setPrintArea(ex)
 
 	// Build output p
-	sjOut := buildOutputPath(now)
+	sjOut := buildOutputPath(now, fmt.Sprintf("%s_%s", routeCode, filenameTime))
 
 	// Save files
 	ex.Save(sjOut)
@@ -300,7 +306,7 @@ func setPrintArea(ex *excel.ExcelFile) {
 	}
 }
 
-func buildOutputPath(now time.Time) string {
+func buildOutputPath(now time.Time, routeCode string) string {
 
 	folder := filepath.Join(
 		"generated", "excel", "sj",
@@ -312,7 +318,8 @@ func buildOutputPath(now time.Time) string {
 	}
 
 	filename := fmt.Sprintf(
-		"sj_print_%s.xlsm",
+		"sj_print_%s_%s.xlsm",
+		routeCode,
 		now.Format("20060102_150405"),
 	)
 

@@ -20,7 +20,8 @@
     { "cut_off": "02:00", "status_rute": "REGULER (SEPIHAK)" },
     { "cut_off": "02:30", "status_rute": "REGULER (SEPIHAK)" },
     { "cut_off": "03:00", "status_rute": "WAJIB (SEPIHAK)" },
-    { "cut_off": "04:00", "status_rute": "REGULER (SEPIHAK)" },
+    { "cut_off": "04:00", "status_rute": "BALIKAN" },
+    { "cut_off": "04:30", "status_rute": "BALIKAN" },
     { "cut_off": "05:00", "status_rute": "BALIKAN" },
     { "cut_off": "06:00", "status_rute": "REGULER (SEPIHAK)" },
     { "cut_off": "07:00", "status_rute": "REGULER (SEPIHAK)" },
@@ -33,7 +34,9 @@
   "SEG_GATEWAY": [
     { "cut_off": "00:00", "status_rute": "WAJIB (SEPIHAK)" },
     { "cut_off": "04:00", "status_rute": "REGULER (SEPIHAK)" },
-    { "cut_off": "07:00", "status_rute": "WAJIB (SEPIHAK)" }
+    { "cut_off": "07:00", "status_rute": "WAJIB (SEPIHAK)" },
+    { "cut_off": "01:00", "status_rute": "BALIKAN" },
+    { "cut_off": "08:00", "status_rute": "BALIKAN" }
   ],
   "BDO_GATEWAY": [
     { "cut_off": "01:00", "status_rute": "REGULER (SEPIHAK)" },
@@ -60,6 +63,8 @@
   ],
   "BGR_GATEWAY": [
     { "cut_off": "22:00", "status_rute": "WAJIB (SEPIHAK)" },
-    { "cut_off": "06:00", "status_rute": "WAJIB (SEPIHAK)" }
+    { "cut_off": "06:00", "status_rute": "WAJIB (SEPIHAK)" },
+    { "cut_off": "12:00", "status_rute": "BALIKAN" },
+    { "cut_off": "05:00", "status_rute": "BALIKAN" }
   ]
 }

@@ -15,9 +15,52 @@ import (
 	"github.com/umardev500/jnt-report/internal/reporting"
 	"github.com/umardev500/jnt-report/internal/route"
 	"github.com/umardev500/jnt-report/internal/types"
+	"github.com/xuri/excelize/v2"
 )
 
+type Vehicle struct {
+	Vendor string
+	Plat   string
+	Type   string
+}
+
+func FindVehicleByPlat(filename, sheetName, plat string) (*Vehicle, error) {
+	f, err := excelize.OpenFile(filename)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	rows, err := f.GetRows(sheetName)
+	if err != nil {
+		return nil, err
+	}
+
+	for i, row := range rows {
+		// Skip header
+		if i == 0 {
+			continue
+		}
+
+		// Need at least columns A, B, C
+		if len(row) < 3 {
+			continue
+		}
+
+		if strings.EqualFold(strings.TrimSpace(row[1]), strings.TrimSpace(plat)) {
+			return &Vehicle{
+				Vendor: row[0], // Column A
+				Plat:   row[1], // Column B
+				Type:   row[2], // Column C
+			}, nil
+		}
+	}
+
+	return nil, fmt.Errorf("plat %q not found", plat)
+}
+
 func GenateSuratJalan(ex *excel.ExcelFile, routes types.GatewayRoutes, code, token, admin, service string) (*detail.ShipmentDetailResponse, *reporting.ReportSummary) {
+	fmt.Println("gen surat jalan")
 	dt, err := detail.GetShipmentDetail(code, token)
 	if err != nil {
 		log.Error().Err(err).Str("Kode Tugas", code).Msg("Error fetching shipment detail")
@@ -25,6 +68,18 @@ func GenateSuratJalan(ex *excel.ExcelFile, routes types.GatewayRoutes, code, tok
 	shipment := dt.Data.ShipmentDetail
 	dest := shipment.TmsShipmentStopVOList[1]
 	origin := shipment.TmsShipmentStopVOList[0]
+
+	plateNumber := dt.Data.ShipmentDetail.PlateNumber
+
+	vehicle, err := FindVehicleByPlat(config.GetVehicleFilePath(), "VEHICLES", plateNumber)
+	if err != nil {
+		log.Error().Err(err).Msg("failed to find vehicle by plat, continue...")
+	}
+
+	if vehicle != nil {
+		shipment.VehicleTypeName = vehicle.Type
+		dt.Data.ShipmentDetail.VehicleTypeName = vehicle.Type
+	}
 
 	now := time.Now()
 	// today := time.Now().Format("2006-01-02")
