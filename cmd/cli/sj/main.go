@@ -191,10 +191,10 @@ func main() {
 	code := args[0]
 	admin := "UMAR"
 
-	// if err := checkDuplicateInColumnP(code); err != nil {
-	// 	log.Fatal().Err(err).Msg("Duplicate error")
-	// 	return
-	// }
+	if err := checkDuplicateInColumnP(code); err != nil {
+		log.Fatal().Err(err).Msg("Duplicate error")
+		return
+	}
 
 	// Load routes
 	routes, err := loadGatewayRoutes(config.GetSKOFilePath())

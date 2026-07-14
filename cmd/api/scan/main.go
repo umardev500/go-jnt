@@ -309,8 +309,9 @@ func (a *App) checkVehicleHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	lookup, err := loadUnits("units.xlsx")
+	lookup, err := loadUnits("ACTUAL_VEHICLE.xlsx")
 	if err != nil {
+		fmt.Println(err)
 		http.Error(w, "failed to load excel", http.StatusInternalServerError)
 		return
 	}
@@ -330,16 +331,16 @@ func (a *App) checkVehicleHandler(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		if row.VehicleType != p.VehicleType {
-			results = append(results, VehicleCheckResult{
-				ShipmentNo:  p.ShipmentNo,
-				PlateNumber: p.PlateNumber,
-				VehicleType: p.VehicleType,
-				Status:      "vehicle type mismatch",
-				Found:       false,
-			})
-			continue
-		}
+		// if row.VehicleType != p.VehicleType {
+		// 	results = append(results, VehicleCheckResult{
+		// 		ShipmentNo:  p.ShipmentNo,
+		// 		PlateNumber: p.PlateNumber,
+		// 		VehicleType: p.VehicleType,
+		// 		Status:      "vehicle type mismatch",
+		// 		Found:       false,
+		// 	})
+		// 	continue
+		// }
 
 		results = append(results, VehicleCheckResult{
 			ShipmentNo:  p.ShipmentNo,
@@ -365,7 +366,7 @@ func loadUnits(filePath string) (map[string]ExcelRow, error) {
 	}
 	defer f.Close()
 
-	rows, err := f.GetRows("Sheet1")
+	rows, err := f.GetRows("VEHICLES")
 	if err != nil {
 		return nil, err
 	}
@@ -373,14 +374,14 @@ func loadUnits(filePath string) (map[string]ExcelRow, error) {
 	lookup := make(map[string]ExcelRow)
 
 	for i, row := range rows {
-		if i == 0 || len(row) < 4 {
+		if i == 0 || len(row) < 3 {
 			continue
 		}
 
 		plate := row[1]
 		lookup[plate] = ExcelRow{
 			VehicleType: row[2],
-			Status:      row[3],
+			Status:      "none",
 		}
 	}
 

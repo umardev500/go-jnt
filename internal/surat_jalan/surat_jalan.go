@@ -71,6 +71,7 @@ func GenateSuratJalan(ex *excel.ExcelFile, routes types.GatewayRoutes, code, tok
 
 	plateNumber := dt.Data.ShipmentDetail.PlateNumber
 
+	log.Info().Str("Plat", plateNumber).Str("Type", dt.Data.ShipmentDetail.VehicleTypeName).Msg("find vehicle by plat")
 	vehicle, err := FindVehicleByPlat(config.GetVehicleFilePath(), "VEHICLES", plateNumber)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to find vehicle by plat, continue...")
