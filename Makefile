@@ -22,5 +22,8 @@ cf:
 get_sj:
 	go run cmd/cli/get_sj/main.go
 
+monitor:
+	go run cmd/cli/monitor/main.go
+
 %:
 	@:
