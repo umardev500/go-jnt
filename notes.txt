@@ -2,3 +2,5 @@ A8215BN -> cross check jenis kendaraan
 B9267SXU
 
 DKGX26042701459 -> CHECK AKTUAL DRIVER
+
+curl.exe -i -X POST http://localhost:8080/approve

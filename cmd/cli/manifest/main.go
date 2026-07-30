@@ -7,6 +7,7 @@ import (
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"github.com/umardev500/jnt-report/internal/approval"
 	"github.com/umardev500/jnt-report/internal/config"
 	"github.com/umardev500/jnt-report/internal/detail"
 	"github.com/umardev500/jnt-report/internal/downloader"
@@ -27,6 +28,12 @@ func main() {
 	cfg, err := config.LoadConfig("config.yml")
 	if err != nil {
 		panic(err)
+	}
+
+	approval.InitDB()
+	if !approval.IsValid() {
+		log.Fatal().Msg("Approval not valid")
+		return
 	}
 
 	if len(os.Args) < 2 {

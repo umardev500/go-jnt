@@ -11,6 +11,7 @@ import (
 	"github.com/rs/cors"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"github.com/umardev500/jnt-report/internal/approval"
 	"github.com/umardev500/jnt-report/internal/config"
 	"github.com/xuri/excelize/v2"
 )
@@ -428,6 +429,7 @@ func init() {
 // ================== MAIN ==================
 
 func main() {
+	approval.InitDB()
 
 	cfg, err := config.LoadConfig("config.yml")
 	if err != nil {
@@ -439,6 +441,29 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/report", app.reportHandler)
 	mux.HandleFunc("/check-vehicle", app.checkVehicleHandler)
+	mux.HandleFunc("/approve", func(w http.ResponseWriter, r *http.Request) {
+
+		err := approval.Grant(725)
+
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+
+		w.Write([]byte("approved for 15 minutes"))
+	})
+	mux.HandleFunc("/revoke", func(w http.ResponseWriter, r *http.Request) {
+
+		err := approval.Revoke()
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("approval revoked"))
+	})
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/fatih/color"
+	"github.com/umardev500/jnt-report/internal/approval"
 	"github.com/umardev500/jnt-report/internal/config"
 	"github.com/umardev500/jnt-report/internal/detail"
 	"github.com/umardev500/jnt-report/internal/downloader"
@@ -22,11 +23,17 @@ func init() {
 }
 
 func main() {
+	approval.InitDB()
+
 	cfg, err := config.LoadConfig("config.yml")
 	if err != nil {
 		panic(err)
 	}
 	log.Info().Msg("Starting JNT Report...")
+	if !approval.IsValid() {
+		log.Fatal().Msg("Approval not valid")
+		return
+	}
 
 	// Flags
 	withReport := flag.Bool("with-report", false, "Download shipment file, generate pivot report, and print summary")

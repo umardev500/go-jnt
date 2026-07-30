@@ -18,6 +18,7 @@ import (
 	"github.com/umardev500/jnt-report/internal/detail"
 	"github.com/umardev500/jnt-report/internal/excel"
 	suratjalan "github.com/umardev500/jnt-report/internal/surat_jalan"
+	"github.com/umardev500/jnt-report/internal/tracking/loadingscan"
 	"github.com/umardev500/jnt-report/internal/types"
 	"github.com/xuri/excelize/v2"
 )
@@ -190,6 +191,31 @@ func main() {
 
 	code := args[0]
 	admin := "UMAR"
+
+	// Load loading scan
+	log.Info().Msg("Loading loading scan...")
+
+	_, err = loadingscan.Get(code, cfg.Token)
+	if err != nil {
+		fmt.Printf("Error fetching loading scan: %v\n", err)
+
+		var answer string
+		fmt.Print("Continue anyway? (Y/N): ")
+		fmt.Scanln(&answer)
+
+		switch strings.ToUpper(answer) {
+		case "Y":
+			log.Warn().Msg("Continuing despite the error...")
+		case "N":
+			log.Info().Msg("Operation cancelled.")
+			return
+		default:
+			log.Info().Msg("Invalid input. Operation cancelled.")
+			return
+		}
+	}
+
+	log.Info().Msg("Loading scan loaded successfully")
 
 	if err := checkDuplicateInColumnP(code); err != nil {
 		log.Fatal().Err(err).Msg("Duplicate error")
