@@ -12,6 +12,6 @@ func main() {
 		panic(err)
 	}
 
-	ex := excel.Open(config.GetHistoryFilePath())
+	ex := excel.Open(config.GetHistoryFilePath(true))
 	validator.ValidateSuratJalan(ex, cfg.Token)
 }

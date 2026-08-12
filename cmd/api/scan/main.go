@@ -441,7 +441,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/report", app.reportHandler)
 	mux.HandleFunc("/check-vehicle", app.checkVehicleHandler)
-	mux.HandleFunc("/approve", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/granted", func(w http.ResponseWriter, r *http.Request) {
 
 		err := approval.Grant(725)
 

@@ -56,13 +56,18 @@ func init() {
 }
 
 func main() {
+	_ = godotenv.Load()
+
+	prod := os.Getenv("APP_ENV") == "prod"
+	log.Info().Msgf("Running in %v mode", prod)
+
 	cfg, err := config.LoadConfig("config.yml")
 	if err != nil {
 		panic(err)
 	}
-	ex := excel.Open(config.GetReportFilePath())
+	ex := excel.Open(config.GetReportFilePath(prod))
 
-	routes, err := loadGatewayRoutes(config.GetSKOFilePath())
+	routes, err := loadGatewayRoutes(config.GetSKOFilePath(prod))
 	if err != nil {
 		fmt.Println("Error loading gateway routes:", err)
 		return
@@ -169,7 +174,7 @@ func main() {
 		// Step 1: Download shipment file
 		skipDownload := false
 		log.Info().Msgf("Downloading shipment file... %s", kode)
-		if err := downloader.DownloadShipmentFile(kode, cfg.Token); err != nil {
+		if err := downloader.DownloadShipmentFile(kode, cfg.Token, prod); err != nil {
 			fmt.Println("Error downloading shipment file:", err)
 			skipDownload = true
 		}
@@ -182,7 +187,7 @@ func main() {
 		}
 
 		// Step 2: Generate pivot report
-		report, err := reporting.GeneratePivotReport(config.GetExportedFilePath(), "Memuat dan membongkar ekspor in", true)
+		report, err := reporting.GeneratePivotReport(config.GetExportedFilePath(prod), "Memuat dan membongkar ekspor in", true)
 		if err != nil {
 			fmt.Println("Error generating report:", err)
 			return
@@ -193,5 +198,9 @@ func main() {
 		ex.SetValue(r.RowIndex, "ISI MUATAN", strconv.Itoa(totalMuatan))
 	}
 
-	ex.Save("public/report_updated.xlsx")
+	if prod {
+		ex.Save("report_result.xlsx")
+		return
+	}
+	ex.Save("public/report_result.xlsx")
 }

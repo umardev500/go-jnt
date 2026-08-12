@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/fatih/color"
+	"github.com/joho/godotenv"
 	"github.com/umardev500/jnt-report/internal/approval"
 	"github.com/umardev500/jnt-report/internal/config"
 	"github.com/umardev500/jnt-report/internal/detail"
@@ -23,6 +24,11 @@ func init() {
 }
 
 func main() {
+	_ = godotenv.Load()
+
+	prod := os.Getenv("APP_ENV") == "prod"
+	log.Info().Msgf("Running in %v mode", prod)
+
 	approval.InitDB()
 
 	cfg, err := config.LoadConfig("config.yml")
@@ -51,14 +57,14 @@ func main() {
 	// Steps 1-3: Optional group
 	if *withReport {
 		// Step 1: Download shipment file
-		if err := downloader.DownloadShipmentFile(shipmentNo, cfg.Token); err != nil {
+		if err := downloader.DownloadShipmentFile(shipmentNo, cfg.Token, prod); err != nil {
 			fmt.Println("Error downloading shipment file:", err)
 			return
 		}
 		fmt.Println("Shipment file downloaded successfully!")
 
 		// Step 2: Generate pivot report
-		report, err := reporting.GeneratePivotReport(config.GetExportedFilePath(), "Memuat dan membongkar ekspor in", true)
+		report, err := reporting.GeneratePivotReport(config.GetExportedFilePath(prod), "Memuat dan membongkar ekspor in", true)
 		if err != nil {
 			fmt.Println("Error generating report:", err)
 			return

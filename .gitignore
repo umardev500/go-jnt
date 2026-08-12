@@ -3,5 +3,6 @@
 *.xls
 *.xlsm
 *.csv
+*.exe
 
 app.db

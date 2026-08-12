@@ -24,23 +24,25 @@ import (
 	"github.com/xuri/excelize/v2"
 )
 
-func printExcel(filePath string) error {
+func printExcel(filePath string, prod bool) error {
+	var err error
 	path := filepath.Join(
 		"C:\\", "Users", "User", "Projects", "go-report", filePath,
 	)
+
+	if prod {
+		path, err = filepath.Abs(filePath)
+		if err != nil {
+			return err
+		}
+
+	}
 
 	cmd := exec.Command(
 		"C:\\Program Files\\Microsoft Office\\root\\Office16\\EXCEL.EXE",
 		path,
 	)
 
-	// path := filepath.Join(
-	// 	"C:\\", "Users", "User", "Projects", "go-report", filePath,
-	// )
-
-	// auto.PrintSJ(path)
-
-	// return nil
 	return cmd.Run()
 }
 
@@ -138,8 +140,8 @@ func (s *Scanner) SetServiceFromFlag(eco bool) {
 	}
 }
 
-func checkDuplicateInColumnP(value string) error {
-	filePath := config.GetHistoryFilePath()
+func checkDuplicateInColumnP(value string, prod bool) error {
+	filePath := config.GetHistoryFilePath(prod)
 
 	f, err := excelize.OpenFile(filePath)
 	if err != nil {
@@ -174,6 +176,11 @@ func checkDuplicateInColumnP(value string) error {
 }
 
 func main() {
+	_ = godotenv.Load()
+
+	prod := os.Getenv("APP_ENV") == "prod"
+	log.Info().Msgf("Running in %v mode", prod)
+
 	now := time.Now()
 	cfg, err := config.LoadConfig("config.yml")
 	if err != nil {
@@ -197,7 +204,11 @@ func main() {
 	}
 
 	code := args[0]
-	admin := "UMAR"
+	admin := os.Getenv("ADMIN")
+	if admin == "" {
+		log.Fatal().Msg("ADMIN env variable is not set")
+		return
+	}
 
 	// Load loading scan
 	log.Info().Msg("Loading loading scan...")
@@ -224,13 +235,13 @@ func main() {
 
 	log.Info().Msg("Loading scan loaded successfully")
 
-	if err := checkDuplicateInColumnP(code); err != nil {
+	if err := checkDuplicateInColumnP(code, prod); err != nil {
 		log.Fatal().Err(err).Msg("Duplicate error")
 		return
 	}
 
 	// Load routes
-	routes, err := loadGatewayRoutes(config.GetSKOFilePath())
+	routes, err := loadGatewayRoutes(config.GetSKOFilePath(prod))
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to load gateway routes")
 	}
@@ -245,8 +256,8 @@ func main() {
 		Msg("scanner initialized")
 
 	// Open Excel files
-	ex := excel.Open(config.GetSuratJalanFilePath())
-	exHist := excel.Open(config.GetHistoryFilePath())
+	ex := excel.Open(config.GetSuratJalanFilePath(prod))
+	exHist := excel.Open(config.GetHistoryFilePath(prod))
 
 	// Generate Surat Jalan
 	dt, report := suratjalan.GenateSuratJalan(
@@ -256,6 +267,7 @@ func main() {
 		cfg.Token,
 		getFullName(admin),
 		scanner.Service,
+		prod,
 	)
 
 	// Extract route code safely
@@ -295,11 +307,18 @@ func main() {
 	// Save files
 	ex.Save(sjOut)
 
-	exHist.Save("assets/sj_history.xlsx")
+	// Save history
+	if prod {
+		exHist.Save("sj_history.xlsx")
+	} else {
+		exHist.Save("assets/sj_history.xlsx")
+	}
+
+	// exHist.Save("assets/sj_history.xlsx")
 
 	// Print
 	fmt.Println("printing....")
-	if err := printExcel(sjOut); err != nil {
+	if err := printExcel(sjOut, prod); err != nil {
 		log.Error().Err(err).Msg("print failed")
 	}
 

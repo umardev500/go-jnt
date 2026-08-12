@@ -59,7 +59,7 @@ func FindVehicleByPlat(filename, sheetName, plat string) (*Vehicle, error) {
 	return nil, fmt.Errorf("plat %q not found", plat)
 }
 
-func GenateSuratJalan(ex *excel.ExcelFile, routes types.GatewayRoutes, code, token, admin, service string) (*detail.ShipmentDetailResponse, *reporting.ReportSummary) {
+func GenateSuratJalan(ex *excel.ExcelFile, routes types.GatewayRoutes, code, token, admin, service string, prod bool) (*detail.ShipmentDetailResponse, *reporting.ReportSummary) {
 	fmt.Println("gen surat jalan")
 	dt, err := detail.GetShipmentDetail(code, token)
 	if err != nil {
@@ -132,13 +132,13 @@ func GenateSuratJalan(ex *excel.ExcelFile, routes types.GatewayRoutes, code, tok
 	// Get pivot info
 	// Step 1: Download shipment file
 	log.Info().Msgf("Downloading shipment file... %s", code)
-	if err := downloader.DownloadShipmentFile(code, token); err != nil {
+	if err := downloader.DownloadShipmentFile(code, token, prod); err != nil {
 		fmt.Println("Error downloading shipment file:", err)
 	}
 	log.Info().Msg("Shipment file downloaded successfully!")
 
 	// Step 2: Generate pivot report
-	report, err := reporting.GeneratePivotReport(config.GetExportedFilePath(), "Memuat dan membongkar ekspor in", true)
+	report, err := reporting.GeneratePivotReport(config.GetExportedFilePath(prod), "Memuat dan membongkar ekspor in", true)
 	if err != nil {
 		fmt.Println("Error generating report:", err)
 		return nil, nil

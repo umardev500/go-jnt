@@ -163,7 +163,7 @@ func DownloadFile(url, outputPath string) error {
 	return err
 }
 
-func DownloadShipmentFile(shipmentNo string, token string) error {
+func DownloadShipmentFile(shipmentNo string, token string, prod bool) error {
 	record, err := FetchBongkarMuat(shipmentNo, token)
 	if err != nil {
 		return err
@@ -198,5 +198,5 @@ func DownloadShipmentFile(shipmentNo string, token string) error {
 		return err
 	}
 
-	return DownloadFile(downloadUrl, config.GetExportedFilePath())
+	return DownloadFile(downloadUrl, config.GetExportedFilePath(prod))
 }

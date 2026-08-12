@@ -3,8 +3,10 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"time"
 
+	"github.com/joho/godotenv"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/umardev500/jnt-report/internal/approval"
@@ -25,6 +27,11 @@ func init() {
 }
 
 func main() {
+	_ = godotenv.Load()
+
+	prod := os.Getenv("APP_ENV") == "prod"
+	log.Info().Msgf("Running in %v mode", prod)
+
 	cfg, err := config.LoadConfig("config.yml")
 	if err != nil {
 		panic(err)
@@ -49,7 +56,8 @@ func main() {
 	}
 
 	// 🔥 LIST OF ROUTES
-	routes := []string{"BDO", "SRG", "SOC", "SUB", "BGR", "SEG", "BKI", "JKT", "JAT", "DPK", "TGL", "TSK", "PTI", "PRO", "MDN", "CRN", "CIM", "JBR", "JOG", "CKP"}
+	// routes := []string{"BDO", "SRG", "SOC", "SUB", "BGR", "SEG", "BKI", "JKT", "JAT", "DPK", "TGL", "TSK", "PTI", "PRO", "MDN", "CRN", "CIM", "JBR", "JOG", "CKP"}
+	routes := []string{"BDO"}
 	// routes := []string{"JKT"}
 	filename := "manifest.yml"
 
@@ -64,9 +72,29 @@ func main() {
 		log.Fatal().Err(err).Msg("failed to load manifest file")
 	}
 
-	templatePath := fmt.Sprintf("%s\\template\\manifest_blank.xlsm", config.AssetDir)
-	finalPath := fmt.Sprintf("%s\\generated\\manifest\\manifest_%s.xlsm", config.AssetDir, dateStr)
-	manifestPath := fmt.Sprintf("%s\\manifest.xlsm", config.AssetDir)
+	baseDir := config.AssetDir
+
+	if prod {
+		baseDir = "."
+	}
+
+	templatePath := filepath.Join(
+		baseDir,
+		"template",
+		"manifest_blank.xlsm",
+	)
+
+	finalPath := filepath.Join(
+		baseDir,
+		"generated",
+		"manifest",
+		fmt.Sprintf("manifest_%s.xlsm", dateStr),
+	)
+
+	manifestPath := filepath.Join(
+		baseDir,
+		"manifest.xlsm",
+	)
 
 	// 6. Recreate fresh working file (important)
 	if err := copyFile(templatePath, manifestPath); err != nil {
@@ -88,7 +116,7 @@ func main() {
 			count++
 			fmt.Printf("%d. 🔎 Processing code: %s\n", count, code)
 
-			if err := runJob(sheet, code, codesBySheet, cfg.Token); err != nil {
+			if err := runJob(sheet, code, codesBySheet, cfg.Token, prod); err != nil {
 				log.Error().
 					Err(err).
 					Str("sheet", sheet).
@@ -174,9 +202,9 @@ func parseArgs() (sheet, code string) {
 }
 
 // downloadShipment handles shipment file download
-func downloadShipment(code string, token string) error {
+func downloadShipment(code string, token string, prod bool) error {
 	log.Info().Str("code", code).Msg("downloading shipment file")
-	return downloader.DownloadShipmentFile(code, token)
+	return downloader.DownloadShipmentFile(code, token, prod)
 }
 
 // processPivot reads and transforms pivot Excel data
@@ -197,17 +225,36 @@ func fetchShipmentDetail(code string, token string) (*detail.ShipmentDetailRespo
 	return detail.GetShipmentDetail(code, token)
 }
 
-func runJob(sheet, code string, codesBySheet CodeMap, token string) error {
+func runJob(
+	sheet, code string,
+	codesBySheet CodeMap,
+	token string,
+	prod bool,
+) error {
 	templateSheet := "TEMPLATE"
 
+	// Development: config.AssetDir
+	// Production: current working directory
+	baseDir := config.AssetDir
+	if prod {
+		baseDir = "."
+	}
+
 	// Step 1: Download shipment file
-	if err := downloadShipment(code, token); err != nil {
+	if err := downloadShipment(code, token, prod); err != nil {
 		return fmt.Errorf("download shipment: %w", err)
 	}
 
 	// Step 2: Process pivot Excel
+	var exportedFilePath string
+	if prod {
+		exportedFilePath = filepath.Join(baseDir, "exported_file.xlsx")
+	} else {
+		exportedFilePath = filepath.Join(baseDir, "public", "exported_file.xlsx")
+	}
+
 	pivotRows, err := processPivot(
-		"public/exported_file.xlsx",
+		exportedFilePath,
 		"Memuat dan membongkar ekspor in",
 	)
 	if err != nil {
@@ -227,8 +274,17 @@ func runJob(sheet, code string, codesBySheet CodeMap, token string) error {
 	// Step 4: Build manifest
 	outFile, err := generateManifest(
 		data,
-		fmt.Sprintf("%s\\template\\manifest_template.xlsm", config.AssetDir),
-		fmt.Sprintf("%s\\generated\\temp\\manifest_%s.xlsx", config.AssetDir, code),
+		filepath.Join(
+			baseDir,
+			"template",
+			"manifest_template.xlsm",
+		),
+		filepath.Join(
+			baseDir,
+			"generated",
+			"temp",
+			fmt.Sprintf("manifest_%s.xlsx", code),
+		),
 		templateSheet,
 		pivotRows,
 	)
@@ -237,14 +293,19 @@ func runJob(sheet, code string, codesBySheet CodeMap, token string) error {
 	}
 
 	// Step 5: Insert into master manifest
-	manifestPath := fmt.Sprintf("%s\\manifest.xlsm", config.AssetDir)
+	manifestPath := filepath.Join(baseDir, "manifest.xlsm")
 
 	manifestFile, err := excelize.OpenFile(manifestPath)
 	if err != nil {
 		return fmt.Errorf("open manifest file: %w", err)
 	}
 
-	if err := manifest.InsertManifest(outFile, manifestFile, sheet, templateSheet); err != nil {
+	if err := manifest.InsertManifest(
+		outFile,
+		manifestFile,
+		sheet,
+		templateSheet,
+	); err != nil {
 		return fmt.Errorf("insert manifest: %w", err)
 	}
 
@@ -254,6 +315,64 @@ func runJob(sheet, code string, codesBySheet CodeMap, token string) error {
 
 	return nil
 }
+
+// func runJob(sheet, code string, codesBySheet CodeMap, token string) error {
+// 	templateSheet := "TEMPLATE"
+
+// 	// Step 1: Download shipment file
+// 	if err := downloadShipment(code, token); err != nil {
+// 		return fmt.Errorf("download shipment: %w", err)
+// 	}
+
+// 	// Step 2: Process pivot Excel
+// 	pivotRows, err := processPivot(
+// 		"public/exported_file.xlsx",
+// 		"Memuat dan membongkar ekspor in",
+// 	)
+// 	if err != nil {
+// 		return fmt.Errorf("process pivot: %w", err)
+// 	}
+
+// 	// Step 3: Fetch shipment detail
+// 	data, err := fetchShipmentDetail(code, token)
+// 	if err != nil {
+// 		return fmt.Errorf("fetch shipment detail: %w", err)
+// 	}
+
+// 	log.Info().
+// 		Int("pivot_rows", len(pivotRows)).
+// 		Msg("pivot processed successfully")
+
+// 	// Step 4: Build manifest
+// 	outFile, err := generateManifest(
+// 		data,
+// 		fmt.Sprintf("%s\\template\\manifest_template.xlsm", config.AssetDir),
+// 		fmt.Sprintf("%s\\generated\\temp\\manifest_%s.xlsx", config.AssetDir, code),
+// 		templateSheet,
+// 		pivotRows,
+// 	)
+// 	if err != nil {
+// 		return fmt.Errorf("generate manifest: %w", err)
+// 	}
+
+// 	// Step 5: Insert into master manifest
+// 	manifestPath := fmt.Sprintf("%s\\manifest.xlsm", config.AssetDir)
+
+// 	manifestFile, err := excelize.OpenFile(manifestPath)
+// 	if err != nil {
+// 		return fmt.Errorf("open manifest file: %w", err)
+// 	}
+
+// 	if err := manifest.InsertManifest(outFile, manifestFile, sheet, templateSheet); err != nil {
+// 		return fmt.Errorf("insert manifest: %w", err)
+// 	}
+
+// 	if err := manifestFile.Save(); err != nil {
+// 		return fmt.Errorf("save manifest file: %w", err)
+// 	}
+
+// 	return nil
+// }
 
 func copyFile(src, dst string) error {
 	data, err := os.ReadFile(src)

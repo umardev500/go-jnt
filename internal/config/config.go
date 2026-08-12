@@ -20,12 +20,20 @@ func GetVehicleFilePath() string {
 	return filepath.Join(baseDir, "ACTUAL_VEHICLE.xlsx")
 }
 
-func GetExportedFilePath() string {
+func GetExportedFilePath(prod bool) string {
+	if prod {
+		return "exported_file.xlsx"
+	}
+
 	baseDir := `C:\Users\User\Projects\go-report\public` // absolute path
 	return filepath.Join(baseDir, "exported_file.xlsx")
 }
 
-func GetReportFilePath() string {
+func GetReportFilePath(prod bool) string {
+	if prod {
+		return "report.xlsx"
+	}
+
 	baseDir := `C:\Users\User\Projects\go-report\public` // absolute path
 	return filepath.Join(baseDir, "report.xlsx")
 }
@@ -35,7 +43,11 @@ func GetManifestFilePath() string {
 	return filepath.Join(baseDir, "manifest_template.xlsx")
 }
 
-func GetSKOFilePath() string {
+func GetSKOFilePath(prod bool) string {
+	if prod {
+		return "sko.json"
+	}
+
 	baseDir := `C:\Users\User\Projects\go-report\assets` // absolute path
 	return filepath.Join(baseDir, "sko.json")
 }
@@ -45,7 +57,11 @@ func GetSJValidatorFilePath() string {
 	return filepath.Join(baseDir, "sj.xlsx")
 }
 
-func GetSuratJalanFilePath() string {
+func GetSuratJalanFilePath(prod bool) string {
+	if prod {
+		return "surat_jalan.xlsm"
+	}
+
 	baseDir := `C:\Users\User\Projects\go-report\public` // absolute path
 	return filepath.Join(baseDir, "surat_jalan.xlsm")
 }
@@ -55,7 +71,11 @@ func GetSuratJalanPrintFilePath() string {
 	return filepath.Join(baseDir, "surat_jalan_updated.xlsm")
 }
 
-func GetHistoryFilePath() string {
+func GetHistoryFilePath(prod bool) string {
+	if prod {
+		return "sj_history.xlsx"
+	}
+
 	baseDir := `C:\Users\User\Projects\go-report\assets` // absolute path
 	return filepath.Join(baseDir, "sj_history.xlsx")
 }
