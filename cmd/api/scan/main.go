@@ -107,7 +107,7 @@ type Record struct {
 	Promotion                int      `json:"promotion"`
 	Shifts                   int      `json:"shifts"`
 	OperationModel           int      `json:"operationModel"`
-	Mileage                  int      `json:"mileage"`
+	Mileage                  float64  `json:"mileage"`
 	CarrierShortName         string   `json:"carrierShortName"`
 	ApplyReasonItem          *int     `json:"applyReasonItem"`
 	ApplyReason              *string  `json:"applyReason"`

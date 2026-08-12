@@ -49,7 +49,7 @@ func main() {
 	}
 
 	// 🔥 LIST OF ROUTES
-	routes := []string{"BDO", "SRG", "SOC", "SUB", "BGR", "SEG", "BKI", "JKT", "JAT", "DPK"}
+	routes := []string{"BDO", "SRG", "SOC", "SUB", "BGR", "SEG", "BKI", "JKT", "JAT", "DPK", "TGL", "TSK", "PTI", "PRO", "MDN", "CRN", "CIM", "JBR", "JOG", "CKP"}
 	// routes := []string{"JKT"}
 	filename := "manifest.yml"
 

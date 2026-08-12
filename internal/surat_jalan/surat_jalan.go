@@ -104,6 +104,7 @@ func GenateSuratJalan(ex *excel.ExcelFile, routes types.GatewayRoutes, code, tok
 		log.Error().Err(err).Msg("invalid date")
 	}
 	rs := route.GetRitase(routes, shipment.EndName, departureTime.Format("15:04"))
+	fmt.Println(rs)
 	jenisPaket := route.GetJenisPaket(rs.StatusRute)
 	fmt.Println("Jenis: ", jenisPaket, rs.StatusRute)
 

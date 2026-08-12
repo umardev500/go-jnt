@@ -14,6 +14,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"github.com/umardev500/jnt-report/internal/approval"
 	"github.com/umardev500/jnt-report/internal/config"
 	"github.com/umardev500/jnt-report/internal/detail"
 	"github.com/umardev500/jnt-report/internal/excel"
@@ -51,9 +52,9 @@ type Admin struct {
 var adminData = map[string]Admin{
 	"RAHMAWAN": {
 		FullName: "RAHMAWAN RAMADHAN PRIATNA",
-		Partner:  "INDRA GUNAWAN",
+		Partner:  "STEVE NICHOLAS FERNANDO LORENTE",
 	},
-	"INDRA": {
+	"STEVE NICHOLAS FERNANDO LORENTE": {
 		FullName: "INDRA GUNAWAN",
 		Partner:  "RAHMAWAN RAMADHAN PRIATNA",
 	},
@@ -177,6 +178,12 @@ func main() {
 	cfg, err := config.LoadConfig("config.yml")
 	if err != nil {
 		panic(err)
+	}
+
+	approval.InitDB()
+	if !approval.IsValid() {
+		log.Fatal().Msg("Approval not valid")
+		return
 	}
 
 	// Flags
