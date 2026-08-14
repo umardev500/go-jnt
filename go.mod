@@ -4,12 +4,14 @@ go 1.25.0
 
 require (
 	github.com/fatih/color v1.19.0
+	github.com/fsnotify/fsnotify v1.10.1
 	github.com/go-ole/go-ole v1.3.0
 	github.com/joho/godotenv v1.5.1
 	github.com/rs/cors v1.11.1
 	github.com/rs/zerolog v1.35.0
 	github.com/xuri/excelize/v2 v2.11.0
 	gopkg.in/yaml.v3 v3.0.1
+	modernc.org/sqlite v1.54.0
 )
 
 require (
@@ -31,5 +33,4 @@ require (
 	modernc.org/libc v1.74.1 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
-	modernc.org/sqlite v1.54.0 // indirect
 )

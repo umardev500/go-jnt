@@ -431,6 +431,12 @@ func init() {
 func main() {
 	approval.InitDB()
 
+	configStore := &config.Store{}
+
+	if err := configStore.Reload(); err != nil {
+		panic(err)
+	}
+
 	cfg, err := config.LoadConfig("config.yml")
 	if err != nil {
 		panic(err)
