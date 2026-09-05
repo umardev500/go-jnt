@@ -1,7 +1,9 @@
 package suratjalan
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -16,12 +18,88 @@ import (
 	"github.com/umardev500/jnt-report/internal/route"
 	"github.com/umardev500/jnt-report/internal/types"
 	"github.com/xuri/excelize/v2"
+	"golang.org/x/term"
 )
 
 type Vehicle struct {
 	Vendor string
 	Plat   string
 	Type   string
+}
+
+const (
+	colorGreen = "\033[32m"
+	colorReset = "\033[0m"
+)
+
+func prettyJSONLog(level string, fields map[string]any, message string) {
+	data := map[string]any{
+		"level":   level,
+		"message": message,
+	}
+
+	for key, value := range fields {
+		data[key] = value
+	}
+
+	output, err := json.MarshalIndent(data, "", "  ")
+	if err != nil {
+		fmt.Printf("failed to marshal pretty JSON: %v\n", err)
+		return
+	}
+
+	var pretty map[string]any
+	if err := json.Unmarshal(output, &pretty); err != nil {
+		fmt.Printf("failed to parse JSON: %v\n", err)
+		return
+	}
+
+	fmt.Println("{")
+
+	i := 0
+	for key, value := range pretty {
+		comma := ","
+		if i == len(pretty)-1 {
+			comma = ""
+		}
+
+		valueJSON, _ := json.MarshalIndent(value, "  ", "  ")
+
+		fmt.Printf(
+			"  %q: %s%s%s%s\n",
+			key,
+			colorGreen,
+			valueJSON,
+			colorReset,
+			comma,
+		)
+
+		i++
+	}
+
+	fmt.Println("}")
+}
+
+func logSection(title string) {
+	width, _, err := term.GetSize(int(os.Stdout.Fd()))
+	if err != nil || width < 40 {
+		width = 80
+	}
+
+	line := strings.Repeat("━", width)
+
+	fmt.Println(line)
+	fmt.Println(title)
+	fmt.Println(line)
+}
+
+func confirmContinue(prompt string) bool {
+	var answer string
+
+	fmt.Print(prompt)
+	fmt.Scanln(&answer)
+
+	return strings.EqualFold(strings.TrimSpace(answer), "Y")
 }
 
 func FindVehicleByPlat(filename, sheetName, plat string) (*Vehicle, error) {
@@ -60,7 +138,8 @@ func FindVehicleByPlat(filename, sheetName, plat string) (*Vehicle, error) {
 }
 
 func GenateSuratJalan(ex *excel.ExcelFile, routes types.GatewayRoutes, code, token, admin, service string, prod bool) (*detail.ShipmentDetailResponse, *reporting.ReportSummary) {
-	fmt.Println("gen surat jalan")
+	logSection("🚚 STARTING SURAT JALAN GENERATION")
+
 	dt, err := detail.GetShipmentDetail(code, token)
 	if err != nil {
 		log.Error().Err(err).Str("Kode Tugas", code).Msg("Error fetching shipment detail")
@@ -70,16 +149,107 @@ func GenateSuratJalan(ex *excel.ExcelFile, routes types.GatewayRoutes, code, tok
 	origin := shipment.TmsShipmentStopVOList[0]
 
 	plateNumber := dt.Data.ShipmentDetail.PlateNumber
+	vtn := dt.Data.ShipmentDetail.VehicleTypeName
 
 	log.Info().Str("Plat", plateNumber).Str("Type", dt.Data.ShipmentDetail.VehicleTypeName).Msg("find vehicle by plat")
-	vehicle, err := FindVehicleByPlat(config.GetVehicleFilePath(), "VEHICLES", plateNumber)
+	vehicle, err := FindVehicleByPlat(config.GetVehicleFilePath(prod), "VEHICLES", plateNumber)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to find vehicle by plat, continue...")
 	}
 
+	// ============================================================
+	// VENDOR VALIDATION
+	// ============================================================
+
+	log.Warn().Msg("⚠️ Vendor confirmation required")
+
+	prettyJSONLog(
+		"warn",
+		map[string]any{
+			"Plat":   plateNumber,
+			"Vendor": shipment.CarrierName,
+		},
+		"Vendor confirmation required",
+	)
+
+	if !confirmContinue("Continue anyway? (Y/N): ") {
+		log.Warn().
+			Str("Plat", vehicle.Plat).
+			Str("Vendor", vehicle.Vendor).
+			Msg("❌ Skipping...")
+
+		return nil, nil
+	}
+
+	log.Info().
+		Str("Plat", vtn).
+		Str("Vendor", shipment.CarrierName).
+		Msg("▶️ Continuing...")
+
+	// ============================================================
+	// VEHICLE TYPE VALIDATION
+	// ============================================================
+
+	if vehicle != nil && vehicle.Type == shipment.VehicleTypeName {
+		log.Info().Msg("✅ Vehicle type match")
+
+		prettyJSONLog(
+			"info",
+			map[string]any{
+				"Carrier":      shipment.CarrierName,
+				"Plat":         plateNumber,
+				"ExpectedType": vtn,
+				"ActualType":   vehicle.Type,
+			},
+			"Vehicle type match",
+		)
+	} else {
+		log.Warn().Msg("⚠️ Vehicle type mismatch")
+
+		prettyJSONLog(
+			"warn",
+			map[string]any{
+				"Carrier":      shipment.CarrierName,
+				"Plat":         plateNumber,
+				"ExpectedType": vtn,
+				"ActualType":   "-",
+			},
+			"Vehicle type mismatch",
+		)
+
+		if !confirmContinue("🚨 Vehicle type mismatch. Continue anyway? (Y/N): ") {
+			log.Warn().
+				Str("Plat", plateNumber).
+				Str("ExpectedType", vtn).
+				Str("ActualType", "-").
+				Msg("🛑 Exiting...")
+
+			return nil, nil
+		}
+
+		log.Info().
+			Str("Plat", plateNumber).
+			Str("ExpectedType", vtn).
+			Str("ActualType", "-").
+			Msg("▶️ Continuing...")
+	}
+
+	// ============================================================
+	// APPLY VEHICLE TYPE
+	// ============================================================
+
 	if vehicle != nil {
 		shipment.VehicleTypeName = vehicle.Type
 		dt.Data.ShipmentDetail.VehicleTypeName = vehicle.Type
+
+		log.Info().
+			Str("Plat", vehicle.Plat).
+			Str("VehicleType", vehicle.Type).
+			Msg("🚚 Vehicle type applied")
+	} else {
+		log.Warn().
+			Str("Plat", plateNumber).
+			Msg("🚨 Vehicle plate not found in vehicle list")
 	}
 
 	now := time.Now()
@@ -104,10 +274,9 @@ func GenateSuratJalan(ex *excel.ExcelFile, routes types.GatewayRoutes, code, tok
 		log.Error().Err(err).Msg("invalid date")
 	}
 	rs := route.GetRitase(routes, shipment.EndName, departureTime.Format("15:04"))
-	fmt.Println(rs)
 	jenisPaket := route.GetJenisPaket(rs.StatusRute)
-	fmt.Println("Jenis: ", jenisPaket, rs.StatusRute)
 
+	ex.SetValue(6, "B", shipment.PlannedDepartureTime)
 	ex.SetValue(33, "C", admin)
 	ex.SetValue(9, "E", appTrackDepartureTime.Format("02-01-2006"))
 	ex.SetValue(10, "E", appTrackDepartureTime.Format("15:04:05")+" / "+jenisPaket)

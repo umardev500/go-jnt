@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path/filepath"
 	"time"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/rs/cors"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -188,13 +190,13 @@ type VehicleCheckResult struct {
 // ================== APP ==================
 
 type App struct {
-	cfg    *config.Config
-	client *http.Client
+	configStore *config.Store
+	client      *http.Client
 }
 
-func NewApp(cfg *config.Config) *App {
+func NewApp(store *config.Store) *App {
 	return &App{
-		cfg: cfg,
+		configStore: store,
 		client: &http.Client{
 			Timeout: 15 * time.Second,
 		},
@@ -204,6 +206,7 @@ func NewApp(cfg *config.Config) *App {
 // ================== CLIENT ==================
 
 func (a *App) fetchReport(payload RequestPayload) (*Response, error) {
+	cfg := a.configStore.Load()
 
 	body, err := json.Marshal(payload)
 	if err != nil {
@@ -220,7 +223,7 @@ func (a *App) fetchReport(payload RequestPayload) (*Response, error) {
 	}
 
 	req.Header.Set("Content-Type", "application/json;charset=utf-8")
-	req.Header.Set("authToken", a.cfg.Token)
+	req.Header.Set("authToken", cfg.Token)
 
 	resp, err := a.client.Do(req)
 	if err != nil {
@@ -359,6 +362,35 @@ func (a *App) checkVehicleHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func (app *App) updateTokenHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		Token string `json:"token"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	if req.Token == "" {
+		http.Error(w, "token is required", http.StatusBadRequest)
+		return
+	}
+
+	if err := app.configStore.UpdateToken(req.Token); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("token updated"))
+}
+
 // ================== HELPERS ==================
 func loadUnits(filePath string) (map[string]ExcelRow, error) {
 	f, err := excelize.OpenFile(filePath)
@@ -426,6 +458,36 @@ func init() {
 	)
 }
 
+func watchConfig(store *config.Store) {
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		log.Fatal().Err(err)
+	}
+	defer watcher.Close()
+
+	if err := watcher.Add("."); err != nil {
+		log.Fatal().Err(err)
+	}
+
+	for {
+		select {
+		case event := <-watcher.Events:
+			if filepath.Base(event.Name) != "config.yml" {
+				continue
+			}
+
+			if event.Op&(fsnotify.Write|fsnotify.Create|fsnotify.Rename) != 0 {
+				if err := store.Reload(); err != nil {
+					log.Err(err).Msg("Config reload failed")
+				}
+			}
+
+		case err := <-watcher.Errors:
+			log.Err(err).Msg("Config watcher error")
+		}
+	}
+}
+
 // ================== MAIN ==================
 
 func main() {
@@ -437,12 +499,9 @@ func main() {
 		panic(err)
 	}
 
-	cfg, err := config.LoadConfig("config.yml")
-	if err != nil {
-		panic(err)
-	}
+	go watchConfig(configStore)
 
-	app := NewApp(cfg)
+	app := NewApp(configStore)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/report", app.reportHandler)
@@ -470,6 +529,7 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("approval revoked"))
 	})
+	mux.HandleFunc("/token", app.updateTokenHandler)
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},

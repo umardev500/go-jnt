@@ -56,7 +56,41 @@ func main() {
 	}
 
 	// 🔥 LIST OF ROUTES
-	routes := []string{"BDO", "SRG", "SOC", "SUB", "BGR", "SEG", "BKI", "JKT", "JAT", "DPK", "TGL", "TSK", "PTI", "PRO", "MDN", "CRN", "CIM", "JBR", "JOG", "CKP"}
+	// routes := []string{"BDO", "SRG", "SOC", "SUB", "BGR", "SEG", "BKI", "JKT", "JAT", "DPK", "TGL", "TSK", "PTI", "PRO", "MDN", "CRN", "CIM", "JBR", "JOG", "CKP"}
+	routes := []string{
+		"BDO",
+		"SRG",
+		"SOC",
+		"SUB",
+		"BGR",
+		"SEG",
+		"BKI",
+		"JKT",
+		"JAT",
+		"DPK",
+		"TGL",
+		"TSK",
+		"PTI",
+		"PRO",
+		"MDN",
+		"CRN",
+		"CIM",
+		"JBR",
+		"JOG",
+		"CKP",
+
+		// New routes
+		"BKS",
+		"DJB",
+		"DPS",
+		"MES",
+		"PDG",
+		"PKU",
+		"PLM",
+		"PMH",
+		"TKG",
+	}
+
 	// routes := []string{"JKT"}
 	filename := "manifest.yml"
 

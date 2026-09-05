@@ -21,6 +21,11 @@ func Process(
 
 	defer f.Close()
 
+	// Remove the new column B first
+	if err := f.RemoveCol(sheet, "B"); err != nil {
+		return err
+	}
+
 	err = RemoveUnusedColumns(
 		f,
 		sheet,

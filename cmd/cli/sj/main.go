@@ -101,8 +101,12 @@ func init() {
 	}
 
 	fmt.Println(os.Getenv("AUTH_TOKEN"))
-	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
-
+	// log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+	log.Logger = zerolog.New(
+		zerolog.ConsoleWriter{
+			Out: os.Stdout,
+		},
+	).With().Timestamp().Logger()
 }
 
 // LoadGatewayRoutes reads a JSON file and unmarshals its content into GatewayRoutes.
@@ -269,6 +273,10 @@ func main() {
 		scanner.Service,
 		prod,
 	)
+	if dt == nil && report == nil {
+		log.Error().Msg("failed to generate surat jalan")
+		return
+	}
 
 	// Extract route code safely
 	routeCode := detail.GetRouteCode(dt)

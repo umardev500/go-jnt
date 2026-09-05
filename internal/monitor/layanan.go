@@ -8,6 +8,13 @@ import (
 	"github.com/xuri/excelize/v2"
 )
 
+func normalizeHeader(s string) string {
+	s = strings.ReplaceAll(s, "\u00A0", " ") // non-breaking space
+	s = strings.ReplaceAll(s, "\u200B", "")  // zero-width space
+	s = strings.ReplaceAll(s, "\uFEFF", "")  // BOM
+	return strings.TrimSpace(s)
+}
+
 func UpdateKlasifikasiByJenisLayanan(
 	f *excelize.File,
 	sheet string,
@@ -29,9 +36,12 @@ func UpdateKlasifikasiByJenisLayanan(
 	// Find columns
 	for i, header := range rows[0] {
 
-		switch strings.TrimSpace(header) {
+		header = normalizeHeader(header)
+		header = strings.ToUpper(header)
+		fmt.Println(header)
 
-		case "Jenis Layanan":
+		switch header {
+		case "JENIS LAYANAN":
 			jenisLayananCol = i
 
 		case "KLASIFIKASI":

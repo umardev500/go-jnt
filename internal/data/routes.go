@@ -37,4 +37,8 @@ var Routes = RouteMap{
 	"PTI": "Jln. Lingkar Timur Ngembal Kulon No.5, Kec. Jati, Kabupaten Kudus, Jawa Tengah",
 	"TGL": "Jln. Mataram No.7, Kec. Tegal Barat, Kota Tegal, Jawa Tengah",
 	"JOG": "Jln. Kusuma Bangsa, Singosaren, Kec. Banguntapan, Bantul, Daerah Istimewa Yogyakarta",
+	"MES": "(Hutan, Kec. Percut Sei Tuan, Kabupaten Deli Serdang, Sumatera Utara)",
+	"DJB": "16 Jalan lingkar selatan II  kec jambi selatan kota jambi",
+	"PMH": "JL JENDRAL SUDIRMAN KEC.CAMBAI AGUNG PRABUMULIH KOMPLEK PERGUDANGAN  PT.PUSRI PRABUMULIH",
+	"BKS": "Jl. Telaga Dewa No.274, Pagar Dewa,Kec. Selebar, Kota Bengkulu, Bengkulu 38211",
 }

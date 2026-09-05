@@ -23,8 +23,11 @@ func UpdateTujuanFromRetur(
 	statusCol := -1
 
 	for i, h := range rows[0] {
+		h = normalizeHeader(h)
+		h = strings.ToUpper(h)
+		fmt.Println(h)
 
-		if strings.TrimSpace(h) == "Status Retur" {
+		if h == "STATUS RETUR" {
 			statusCol = i
 			break
 		}
