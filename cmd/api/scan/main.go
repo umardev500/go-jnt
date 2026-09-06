@@ -15,6 +15,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/umardev500/jnt-report/internal/approval"
 	"github.com/umardev500/jnt-report/internal/config"
+	"github.com/umardev500/jnt-report/internal/whatsapp"
 	"github.com/xuri/excelize/v2"
 )
 
@@ -192,14 +193,19 @@ type VehicleCheckResult struct {
 type App struct {
 	configStore *config.Store
 	client      *http.Client
+	whatsapp    *whatsapp.Client
 }
 
-func NewApp(store *config.Store) *App {
+func NewApp(
+	store *config.Store,
+	whatsappClient *whatsapp.Client,
+) *App {
 	return &App{
 		configStore: store,
 		client: &http.Client{
 			Timeout: 15 * time.Second,
 		},
+		whatsapp: whatsappClient,
 	}
 }
 
@@ -391,6 +397,83 @@ func (app *App) updateTokenHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("token updated"))
 }
 
+func (a *App) whatsappSendHandler(
+	w http.ResponseWriter,
+	r *http.Request,
+) {
+	if r.Method != http.MethodPost {
+		http.Error(
+			w,
+			"Method not allowed",
+			http.StatusMethodNotAllowed,
+		)
+		return
+	}
+
+	var req struct {
+		Phone   string `json:"phone"`
+		Message string `json:"message"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(
+			w,
+			"invalid request body",
+			http.StatusBadRequest,
+		)
+		return
+	}
+
+	if req.Phone == "" {
+		http.Error(
+			w,
+			"phone is required",
+			http.StatusBadRequest,
+		)
+		return
+	}
+
+	if req.Message == "" {
+		http.Error(
+			w,
+			"message is required",
+			http.StatusBadRequest,
+		)
+		return
+	}
+
+	err := a.whatsapp.SendText(
+		r.Context(),
+		req.Phone,
+		req.Message,
+	)
+
+	if err != nil {
+		log.Error().
+			Err(err).
+			Str("phone", req.Phone).
+			Msg("Failed to send WhatsApp message")
+
+		http.Error(
+			w,
+			"failed to send WhatsApp message",
+			http.StatusInternalServerError,
+		)
+
+		return
+	}
+
+	w.Header().Set(
+		"Content-Type",
+		"application/json",
+	)
+
+	json.NewEncoder(w).Encode(map[string]any{
+		"success": true,
+		"message": "WhatsApp message sent",
+	})
+}
+
 // ================== HELPERS ==================
 func loadUnits(filePath string) (map[string]ExcelRow, error) {
 	f, err := excelize.OpenFile(filePath)
@@ -501,15 +584,43 @@ func main() {
 
 	go watchConfig(configStore)
 
-	app := NewApp(configStore)
+	// ================== WHATSAPP ==================
+
+	wa, err := whatsapp.New()
+	if err != nil {
+		log.Fatal().
+			Err(err).
+			Msg("Failed to initialize WhatsApp")
+	}
+
+	go func() {
+		log.Info().Msg("Starting WhatsApp connection...")
+
+		if err := wa.Connect(); err != nil {
+			log.Error().
+				Err(err).
+				Msg("WhatsApp connection failed")
+
+			return
+		}
+
+		log.Info().Msg("WhatsApp connected")
+	}()
+
+	defer wa.Disconnect()
+
+	// ================== APP ==================
+
+	app := NewApp(configStore, wa)
 
 	mux := http.NewServeMux()
+
 	mux.HandleFunc("/report", app.reportHandler)
 	mux.HandleFunc("/check-vehicle", app.checkVehicleHandler)
+	mux.HandleFunc("/whatsapp/send", app.whatsappSendHandler)
+
 	mux.HandleFunc("/granted", func(w http.ResponseWriter, r *http.Request) {
-
 		err := approval.Grant(725)
-
 		if err != nil {
 			http.Error(w, err.Error(), 500)
 			return
@@ -517,10 +628,9 @@ func main() {
 
 		w.Write([]byte("approved for 15 minutes"))
 	})
+
 	mux.HandleFunc("/revoke", func(w http.ResponseWriter, r *http.Request) {
-
 		err := approval.Revoke()
-
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -529,6 +639,7 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("approval revoked"))
 	})
+
 	mux.HandleFunc("/token", app.updateTokenHandler)
 
 	c := cors.New(cors.Options{
@@ -538,12 +649,13 @@ func main() {
 		AllowCredentials: true,
 	})
 
-	fmt.Println("Listening on port 8080...")
+	log.Info().Msg("API listening on port 8081")
 
 	if err := http.ListenAndServe(
-		":8080",
+		":8081",
 		c.Handler(mux),
 	); err != nil {
-		panic(err)
+		log.Fatal().Err(err).Msg("API server stopped")
 	}
+
 }

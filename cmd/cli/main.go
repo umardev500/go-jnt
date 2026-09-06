@@ -35,7 +35,19 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	if !approval.IsValid() {
+		log.Info().Msg("Payment is required to activate this app.")
+		log.Info().Msg("The QR code has been opened in a separate window.")
+		log.Info().Msg("Please scan the QR code to complete your payment.")
+		log.Info().Msg("Waiting for payment confirmation...")
+
+		// qr.Print("00020101021126610014COM.GO-JEK.WWW01189360091436251354870210G6251354870303UMI51440014ID.CO.QRIS.WWW0215ID10265847161160303UMI5204899953033605802ID5923UMAR, Digital & Kreatif6006SERANG61054211662070703A016304630C")
+		return
+	}
+
 	log.Info().Msg("Starting JNT Report...")
+
 	if !approval.IsValid() {
 		log.Fatal().Msg("Approval not valid")
 		return
