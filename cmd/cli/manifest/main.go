@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -15,6 +16,7 @@ import (
 	"github.com/umardev500/jnt-report/internal/downloader"
 	"github.com/umardev500/jnt-report/internal/excel"
 	"github.com/umardev500/jnt-report/internal/manifest"
+	"github.com/umardev500/jnt-report/internal/payment"
 	"github.com/umardev500/jnt-report/internal/pivot"
 	"github.com/xuri/excelize/v2"
 	"gopkg.in/yaml.v3"
@@ -38,9 +40,18 @@ func main() {
 	}
 
 	approval.InitDB()
-	if !approval.IsValid() {
-		log.Fatal().Msg("Approval not valid")
-		return
+
+	scanner := bufio.NewScanner(os.Stdin)
+
+	if err := payment.WaitForActivation(
+		cfg,
+		approval.IsValid,
+		scanner,
+		"qris.jpg",
+	); err != nil {
+		log.Fatal().
+			Err(err).
+			Msg("Payment activation failed")
 	}
 
 	if len(os.Args) < 2 {

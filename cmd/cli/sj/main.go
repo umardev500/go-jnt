@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -18,6 +19,7 @@ import (
 	"github.com/umardev500/jnt-report/internal/config"
 	"github.com/umardev500/jnt-report/internal/detail"
 	"github.com/umardev500/jnt-report/internal/excel"
+	"github.com/umardev500/jnt-report/internal/payment"
 	suratjalan "github.com/umardev500/jnt-report/internal/surat_jalan"
 	"github.com/umardev500/jnt-report/internal/tracking/loadingscan"
 	"github.com/umardev500/jnt-report/internal/types"
@@ -192,9 +194,17 @@ func main() {
 	}
 
 	approval.InitDB()
-	if !approval.IsValid() {
-		log.Fatal().Msg("Approval not valid")
-		return
+	scanner1 := bufio.NewScanner(os.Stdin)
+
+	if err := payment.WaitForActivation(
+		cfg,
+		approval.IsValid,
+		scanner1,
+		"qris.jpg",
+	); err != nil {
+		log.Fatal().
+			Err(err).
+			Msg("Payment activation failed")
 	}
 
 	// Flags

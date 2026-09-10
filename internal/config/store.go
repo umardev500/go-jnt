@@ -29,7 +29,35 @@ func (s *Store) Reload() error {
 	return nil
 }
 
-func (s *Store) UpdateToken(token string) error {
+func (s *Store) UpdateUserInfo(name, staffNo, email string) error {
+	data, err := os.ReadFile("config.yml")
+	if err != nil {
+		return err
+	}
+
+	var cfg Config
+
+	if err := yaml.Unmarshal(data, &cfg); err != nil {
+		return err
+	}
+
+	cfg.Name = name
+	cfg.StaffNo = staffNo
+	cfg.Email = email
+
+	data, err = yaml.Marshal(&cfg)
+	if err != nil {
+		return err
+	}
+
+	if err := os.WriteFile("config.yml", data, 0644); err != nil {
+		return err
+	}
+
+	return s.Reload()
+}
+
+func (s *Store) UpdateUserConfig(token, name, staffNo, email string) error {
 	data, err := os.ReadFile("config.yml")
 	if err != nil {
 		return err
@@ -42,6 +70,9 @@ func (s *Store) UpdateToken(token string) error {
 	}
 
 	cfg.Token = token
+	cfg.Name = name
+	cfg.StaffNo = staffNo
+	cfg.Email = email
 
 	data, err = yaml.Marshal(&cfg)
 	if err != nil {

@@ -88,6 +88,9 @@ func GetHistoryFilePath(prod bool) string {
 
 type Config struct {
 	Token   string               `yaml:"token"`
+	Name    string               `yaml:"name"`
+	StaffNo string               `yaml:"staffNo"`
+	Email   string               `yaml:"email"`
 	Vendors map[string][]Vehicle `yaml:"vendors"`
 }
 

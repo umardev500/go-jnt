@@ -1,9 +1,13 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"math"
+	"net/http"
 	"os"
 	"time"
 
@@ -13,6 +17,7 @@ import (
 	"github.com/umardev500/jnt-report/internal/config"
 	"github.com/umardev500/jnt-report/internal/detail"
 	"github.com/umardev500/jnt-report/internal/downloader"
+	"github.com/umardev500/jnt-report/internal/payment"
 	"github.com/umardev500/jnt-report/internal/reporting"
 
 	"github.com/rs/zerolog"
@@ -36,14 +41,17 @@ func main() {
 		panic(err)
 	}
 
-	if !approval.IsValid() {
-		log.Info().Msg("Payment is required to activate this app.")
-		log.Info().Msg("The QR code has been opened in a separate window.")
-		log.Info().Msg("Please scan the QR code to complete your payment.")
-		log.Info().Msg("Waiting for payment confirmation...")
+	scanner := bufio.NewScanner(os.Stdin)
 
-		// qr.Print("00020101021126610014COM.GO-JEK.WWW01189360091436251354870210G6251354870303UMI51440014ID.CO.QRIS.WWW0215ID10265847161160303UMI5204899953033605802ID5923UMAR, Digital & Kreatif6006SERANG61054211662070703A016304630C")
-		return
+	if err := payment.WaitForActivation(
+		cfg,
+		approval.IsValid,
+		scanner,
+		"qris.jpg",
+	); err != nil {
+		log.Fatal().
+			Err(err).
+			Msg("Payment activation failed")
 	}
 
 	log.Info().Msg("Starting JNT Report...")
@@ -99,6 +107,45 @@ func main() {
 	} else {
 		printShipmentDetail(res) // Existing full detail
 	}
+}
+
+func sendWhatsAppNotification(phone, message string) error {
+	payload := map[string]string{
+		"phone":   phone,
+		"message": message,
+	}
+
+	body, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest(
+		http.MethodPost,
+		"http://localhost:8081/whatsapp/send",
+		bytes.NewBuffer(body),
+	)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return fmt.Errorf("WhatsApp API returned status %d", resp.StatusCode)
+	}
+
+	return nil
 }
 
 func printReportSummary(report *reporting.ReportSummary) {

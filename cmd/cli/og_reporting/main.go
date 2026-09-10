@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -14,10 +15,12 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"github.com/umardev500/jnt-report/internal/approval"
 	"github.com/umardev500/jnt-report/internal/config"
 	"github.com/umardev500/jnt-report/internal/detail"
 	"github.com/umardev500/jnt-report/internal/downloader"
 	"github.com/umardev500/jnt-report/internal/excel"
+	"github.com/umardev500/jnt-report/internal/payment"
 	"github.com/umardev500/jnt-report/internal/reporting"
 	"github.com/umardev500/jnt-report/internal/route"
 	"github.com/umardev500/jnt-report/internal/types"
@@ -61,10 +64,26 @@ func main() {
 	prod := os.Getenv("APP_ENV") == "prod"
 	log.Info().Msgf("Running in %v mode", prod)
 
+	approval.InitDB()
+
 	cfg, err := config.LoadConfig("config.yml")
 	if err != nil {
 		panic(err)
 	}
+
+	scanner := bufio.NewScanner(os.Stdin)
+
+	if err := payment.WaitForActivation(
+		cfg,
+		approval.IsValid,
+		scanner,
+		"qris.jpg",
+	); err != nil {
+		log.Fatal().
+			Err(err).
+			Msg("Payment activation failed")
+	}
+
 	ex := excel.Open(config.GetReportFilePath(prod))
 
 	routes, err := loadGatewayRoutes(config.GetSKOFilePath(prod))

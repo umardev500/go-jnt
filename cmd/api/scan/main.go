@@ -375,7 +375,10 @@ func (app *App) updateTokenHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req struct {
-		Token string `json:"token"`
+		Token   string `json:"token"`
+		Name    string `json:"name"`
+		StaffNo string `json:"staffNo"`
+		Email   string `json:"email"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -388,7 +391,7 @@ func (app *App) updateTokenHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := app.configStore.UpdateToken(req.Token); err != nil {
+	if err := app.configStore.UpdateUserInfo(req.Name, req.StaffNo, req.Email); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -649,13 +652,23 @@ func main() {
 		AllowCredentials: true,
 	})
 
-	log.Info().Msg("API listening on port 8081")
+	apiPort := os.Getenv("API_PORT")
+
+	if apiPort == "" {
+		apiPort = "8080"
+	}
+
+	log.Info().
+		Str("port", apiPort).
+		Msg("API listening")
 
 	if err := http.ListenAndServe(
-		":8081",
+		":"+apiPort,
 		c.Handler(mux),
 	); err != nil {
-		log.Fatal().Err(err).Msg("API server stopped")
+		log.Fatal().
+			Err(err).
+			Msg("API server stopped")
 	}
 
 }
