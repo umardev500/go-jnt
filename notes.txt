@@ -5,4 +5,4 @@ DKGX26042701459 -> CHECK AKTUAL DRIVER
 
 curl.exe -i -X POST http://localhost:8080/approve
 
-go build -trimpath -ldflags="-s -w" -o manifest.exe .\cmd\cli\manifest
+go build -trimpath -ldflags="-s -w" -o manifest.exe .\cmd\cli\manifest i
