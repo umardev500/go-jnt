@@ -391,7 +391,7 @@ func (app *App) updateTokenHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := app.configStore.UpdateUserInfo(req.Name, req.StaffNo, req.Email); err != nil {
+	if err := app.configStore.UpdateUserInfo(req.Token, req.Name, req.StaffNo, req.Email); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

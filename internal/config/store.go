@@ -29,7 +29,7 @@ func (s *Store) Reload() error {
 	return nil
 }
 
-func (s *Store) UpdateUserInfo(name, staffNo, email string) error {
+func (s *Store) UpdateUserInfo(token, name, staffNo, email string) error {
 	data, err := os.ReadFile("config.yml")
 	if err != nil {
 		return err
@@ -41,6 +41,7 @@ func (s *Store) UpdateUserInfo(name, staffNo, email string) error {
 		return err
 	}
 
+	cfg.Token = token
 	cfg.Name = name
 	cfg.StaffNo = staffNo
 	cfg.Email = email
