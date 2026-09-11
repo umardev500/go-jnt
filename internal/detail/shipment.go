@@ -106,5 +106,12 @@ func GetRouteCode(dt *ShipmentDetailResponse) string {
 	parts := strings.Split(destination.NetworkName, "_")
 	routeCode := parts[0]
 
-	return routeCode
+	switch routeCode {
+	case "PMH2":
+		return "PMH"
+	case "GSK2":
+		return "GSK"
+	default:
+		return routeCode
+	}
 }
