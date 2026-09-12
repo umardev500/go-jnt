@@ -53,10 +53,15 @@ func Process(
 		return err
 	}
 
+	sheets := inputFile.GetSheetList()
+	if len(sheets) == 0 {
+		return fmt.Errorf("excel file has no sheets")
+	}
+
 	// ----------------------------------------
 	// Read input
 	// ----------------------------------------
-	rows, err := inputFile.GetRows(sheet)
+	rows, err := inputFile.GetRows(sheets[0])
 	if err != nil {
 		return err
 	}
