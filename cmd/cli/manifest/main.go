@@ -12,6 +12,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/umardev500/jnt-report/internal/approval"
 	"github.com/umardev500/jnt-report/internal/config"
+	"github.com/umardev500/jnt-report/internal/db"
 	"github.com/umardev500/jnt-report/internal/detail"
 	"github.com/umardev500/jnt-report/internal/downloader"
 	"github.com/umardev500/jnt-report/internal/excel"
@@ -39,13 +40,19 @@ func main() {
 		panic(err)
 	}
 
-	approval.InitDB()
+	database, err := db.Init()
+	if err != nil {
+		log.Fatal().Err(err)
+	}
+	defer database.Close()
+
+	approvalService := approval.New(database)
 
 	scanner := bufio.NewScanner(os.Stdin)
 
 	if err := payment.WaitForActivation(
 		cfg,
-		approval.IsValid,
+		approvalService.IsValid,
 		scanner,
 		"qris.jpg",
 	); err != nil {

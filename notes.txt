@@ -5,4 +5,8 @@ DKGX26042701459 -> CHECK AKTUAL DRIVER
 
 curl.exe -i -X POST http://localhost:8080/approve
 
-go build -trimpath -ldflags="-s -w" -o manifest.exe .\cmd\cli\manifest i
+go build -trimpath -ldflags="-s -w" -o manifest.exe .\cmd\cli\manifest
+go build -trimpath -ldflags="-s -w" -o api.exe .\cmd\api\scan
+go build -trimpath -ldflags="-s -w" -o info.exe .\cmd\cli
+go build -trimpath -ldflags="-s -w" -o sj.exe .\cmd\cli\sj
+go build -trimpath -ldflags="-s -w" -o report.exe .\cmd\cli\og_reporting

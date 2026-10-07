@@ -274,6 +274,8 @@ func GenateSuratJalan(ex *excel.ExcelFile, routes types.GatewayRoutes, code, tok
 		log.Error().Err(err).Msg("invalid date")
 	}
 	rs := route.GetRitase(routes, shipment.EndName, departureTime.Format("15:04"))
+	fmt.Println(rs)
+
 	jenisPaket := route.GetJenisPaket(rs.StatusRute)
 
 	ex.SetValue(6, "B", shipment.PlannedDepartureTime)
@@ -325,11 +327,22 @@ func GenateSuratJalan(ex *excel.ExcelFile, routes types.GatewayRoutes, code, tok
 	ex.SetValue(22, "H", strconv.Itoa(report.TotalWaybillCount))
 	ex.SetValue(26, "H", strconv.Itoa(report.TotalWaybillCount+report.BlankBaggingCount))
 
-	ex.SetValue(10, "I", dest.NetworkName)
+	ex.SetValue(10, "I", checkNetworkName(dest.NetworkName))
 	address := data.Routes[routeCode]
 	ex.SetValue(11, "I", address)
 
 	return dt, report
+}
+
+func checkNetworkName(n string) string {
+	switch n {
+	case "PMH2_GATEWAY":
+		return "PMH_GATEWAY"
+	case "GSK2_GATEWAY":
+		return "GSK_GATEWAY"
+	}
+
+	return n
 }
 
 func normalizeCompanyName(name string) string {

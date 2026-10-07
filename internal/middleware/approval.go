@@ -6,11 +6,11 @@ import (
 	"github.com/umardev500/jnt-report/internal/approval"
 )
 
-func RequireApproval(next http.HandlerFunc) http.HandlerFunc {
+func approvalService(approvalService approval.Service, next http.HandlerFunc) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		if !approval.IsValid() {
+		if !approvalService.IsValid() {
 
 			http.Error(
 				w,

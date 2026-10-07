@@ -14,6 +14,11 @@ import (
 	"github.com/mdp/qrterminal/v3"
 )
 
+type Group struct {
+	Name string
+	JID  string
+}
+
 type Client struct {
 	client    *whatsmeow.Client
 	container *sqlstore.Container
@@ -123,4 +128,22 @@ func (w *Client) Disconnect() {
 	if w.container != nil {
 		_ = w.container.Close()
 	}
+}
+
+func (c *Client) GetGroups(ctx context.Context) ([]Group, error) {
+	groups, err := c.client.GetJoinedGroups(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]Group, 0, len(groups))
+
+	for _, group := range groups {
+		result = append(result, Group{
+			Name: group.Name,
+			JID:  group.JID.String(),
+		})
+	}
+
+	return result, nil
 }

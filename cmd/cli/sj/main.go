@@ -17,6 +17,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/umardev500/jnt-report/internal/approval"
 	"github.com/umardev500/jnt-report/internal/config"
+	"github.com/umardev500/jnt-report/internal/db"
 	"github.com/umardev500/jnt-report/internal/detail"
 	"github.com/umardev500/jnt-report/internal/excel"
 	"github.com/umardev500/jnt-report/internal/payment"
@@ -193,12 +194,19 @@ func main() {
 		panic(err)
 	}
 
-	approval.InitDB()
+	database, err := db.Init()
+	if err != nil {
+		log.Fatal().Err(err)
+	}
+	defer database.Close()
+
+	approvalService := approval.New(database)
+
 	scanner1 := bufio.NewScanner(os.Stdin)
 
 	if err := payment.WaitForActivation(
 		cfg,
-		approval.IsValid,
+		approvalService.IsValid,
 		scanner1,
 		"qris.jpg",
 	); err != nil {
@@ -320,7 +328,7 @@ func main() {
 	// setPrintArea(ex)
 
 	// Build output p
-	sjOut := buildOutputPath(now, fmt.Sprintf("%s_%s", routeCode, filenameTime))
+	sjOut := buildOutputPath(now, fmt.Sprintf("%s_%s", routeCode, filenameTime), scanner.Code)
 
 	// Save files
 	ex.Save(sjOut)
@@ -376,7 +384,7 @@ func setPrintArea(ex *excel.ExcelFile) {
 	}
 }
 
-func buildOutputPath(now time.Time, routeCode string) string {
+func buildOutputPath(now time.Time, routeCode, code string) string {
 
 	folder := filepath.Join(
 		"generated", "excel", "sj",
@@ -388,9 +396,10 @@ func buildOutputPath(now time.Time, routeCode string) string {
 	}
 
 	filename := fmt.Sprintf(
-		"sj_print_%s_%s.xlsm",
+		"sj_print_%s_%s_%s.xlsm",
 		routeCode,
 		now.Format("20060102_150405"),
+		code,
 	)
 
 	return filepath.Join(folder, filename)

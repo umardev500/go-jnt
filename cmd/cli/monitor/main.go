@@ -10,6 +10,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/umardev500/jnt-report/internal/approval"
 	"github.com/umardev500/jnt-report/internal/config"
+	"github.com/umardev500/jnt-report/internal/db"
 	"github.com/umardev500/jnt-report/internal/monitor"
 	"github.com/umardev500/jnt-report/internal/payment"
 )
@@ -32,7 +33,13 @@ func main() {
 	prod := os.Getenv("APP_ENV") == "prod"
 	log.Info().Msgf("Running in %v mode", prod)
 
-	approval.InitDB()
+	database, err := db.Init()
+	if err != nil {
+		log.Fatal().Err(err)
+	}
+	defer database.Close()
+
+	approvalService := approval.New(database)
 
 	cfg, err := config.LoadConfig("config.yml")
 	if err != nil {
@@ -43,7 +50,7 @@ func main() {
 
 	if err := payment.WaitForActivation(
 		cfg,
-		approval.IsValid,
+		approvalService.IsValid,
 		scanner,
 		"qris.jpg",
 	); err != nil {

@@ -11,7 +11,8 @@ import (
 	"github.com/umardev500/jnt-report/internal/whatsapp"
 )
 
-const adminPhone = "6283142765573"
+// const adminPhone = "6283142765573"
+const adminPhone = "120363413605685992@g.us"
 
 func paymentSubmittedMessage(name string) string {
 	return fmt.Sprintf(`💳 *Payment Received*

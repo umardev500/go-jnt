@@ -3,6 +3,7 @@ package whatsapp
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/types"
@@ -10,7 +11,7 @@ import (
 
 func (w *Client) SendText(
 	ctx context.Context,
-	phone string,
+	target string,
 	text string,
 ) error {
 	if w.client == nil {
@@ -21,7 +22,17 @@ func (w *Client) SendText(
 		return fmt.Errorf("WhatsApp client is not connected")
 	}
 
-	jid := types.NewJID(phone, types.DefaultUserServer)
+	var jid types.JID
+
+	if strings.HasSuffix(target, "@g.us") {
+		var err error
+		jid, err = types.ParseJID(target)
+		if err != nil {
+			return fmt.Errorf("invalid group JID: %w", err)
+		}
+	} else {
+		jid = types.NewJID(target, types.DefaultUserServer)
+	}
 
 	msg := &waE2E.Message{
 		Conversation: &text,

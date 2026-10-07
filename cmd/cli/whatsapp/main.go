@@ -26,9 +26,26 @@ func main() {
 
 	fmt.Println()
 	fmt.Println("WhatsApp is ready.")
+
+	// Get WhatsApp groups.
+	groups, err := client.GetGroups(context.Background())
+	if err != nil {
+		fmt.Printf("Failed to get groups: %v\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Println()
+	fmt.Println("WhatsApp Groups:")
+	fmt.Println("----------------")
+
+	for _, group := range groups {
+		fmt.Printf("Name: %s\n", group.Name)
+		fmt.Printf("JID:  %s\n", group.JID)
+		fmt.Println()
+	}
+
 	fmt.Println("Press Ctrl+C to exit.")
 
-	// Keep application running.
 	ctx, cancel := signal.NotifyContext(
 		context.Background(),
 		os.Interrupt,

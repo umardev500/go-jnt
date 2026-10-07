@@ -1,0 +1,498 @@
+{
+  "BKI_GATEWAY": [
+    {
+      "cut_off": "22:00",
+      "status_rute": "WAJIB (DUA PIHAK)"
+    },
+    {
+      "cut_off": "06:00",
+      "status_rute": "WAJIB (DUA PIHAK)"
+    }
+  ],
+  "DPK_GATEWAY": [
+    {
+      "cut_off": "22:00",
+      "status_rute": "WAJIB (SEPIHAK)"
+    },
+    {
+      "cut_off": "06:00",
+      "status_rute": "WAJIB (SEPIHAK)"
+    }
+  ],
+  "JAT_GATEWAY": [
+    {
+      "cut_off": "22:00",
+      "status_rute": "WAJIB (SEPIHAK)"
+    },
+    {
+      "cut_off": "05:59",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "06:00",
+      "status_rute": "WAJIB (SEPIHAK)"
+    }
+  ],
+  "JKT_GATEWAY": [
+    {
+      "cut_off": "22:00",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "21:00",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "00:00",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "01:00",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "02:00",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "02:30",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "03:00",
+      "status_rute": "WAJIB (SEPIHAK)"
+    },
+    {
+      "cut_off": "04:00",
+      "status_rute": "REGULER (DUA PIHAK)"
+    },
+    {
+      "cut_off": "04:30",
+      "status_rute": "BALIKAN"
+    },
+    {
+      "cut_off": "05:00",
+      "status_rute": "BALIKAN"
+    },
+    {
+      "cut_off": "06:00",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "07:00",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "08:00",
+      "status_rute": "WAJIB (SEPIHAK)"
+    },
+    {
+      "cut_off": "07:58",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "07:59",
+      "status_rute": "WAJIB (SEPIHAK)"
+    },
+    {
+      "cut_off": "12:00",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "18:00",
+      "status_rute": "REGULER (SEPIHAK)"
+    }
+  ],
+  "SEG_GATEWAY": [
+    {
+      "cut_off": "22:00",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "00:00",
+      "status_rute": "WAJIB (SEPIHAK)"
+    },
+    {
+      "cut_off": "07:00",
+      "status_rute": "WAJIB (SEPIHAK)"
+    },
+    {
+      "cut_off": "01:00",
+      "status_rute": "BALIKAN"
+    },
+    {
+      "cut_off": "08:00",
+      "status_rute": "BALIKAN"
+    }
+  ],
+  "BDO_GATEWAY": [
+    {
+      "cut_off": "04:00",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "08:00",
+      "status_rute": "WAJIB (DUA PIHAK)"
+    }
+  ],
+  "BDG_GATEWAY": [
+    {
+      "cut_off": "08:00",
+      "status_rute": "WAJIB (DUA PIHAK)"
+    }
+  ],
+  "SOC_GATEWAY": [
+    {
+      "cut_off": "07:00",
+      "status_rute": "BALIKAN"
+    },
+    {
+      "cut_off": "10:00",
+      "status_rute": "WAJIB (SEPIHAK)"
+    }
+  ],
+  "SRG_GATEWAY": [
+    {
+      "cut_off": "04:00",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "10:00",
+      "status_rute": "WAJIB (SEPIHAK)"
+    }
+  ],
+  "SUB_GATEWAY": [
+    {
+      "cut_off": "19:30",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "21:30",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "23:00",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "10:00",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "01:00",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "04:00",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "12:00",
+      "status_rute": "BALIKAN"
+    },
+    {
+      "cut_off": "08:00",
+      "status_rute": "WAJIB (SEPIHAK)"
+    }
+  ],
+  "BGR_GATEWAY": [
+    {
+      "cut_off": "22:00",
+      "status_rute": "WAJIB (SEPIHAK)"
+    },
+    {
+      "cut_off": "06:00",
+      "status_rute": "WAJIB (SEPIHAK)"
+    },
+    {
+      "cut_off": "12:00",
+      "status_rute": "BALIKAN"
+    },
+    {
+      "cut_off": "05:00",
+      "status_rute": "BALIKAN"
+    }
+  ],
+  "CRN_GATEWAY": [
+    {
+      "cut_off": "02:00",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "04:00",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "08:00",
+      "status_rute": "WAJIB (SEPIHAK)"
+    }
+  ],
+  "CKP_GATEWAY": [
+    {
+      "cut_off": "02:00",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "04:00",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "08:00",
+      "status_rute": "WAJIB (SEPIHAK)"
+    }
+  ],
+  "CIM_GATEWAY": [
+    {
+      "cut_off": "04:00",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "08:00",
+      "status_rute": "WAJIB (SEPIHAK)"
+    }
+  ],
+  "TSK_GATEWAY": [
+    {
+      "cut_off": "04:00",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "08:00",
+      "status_rute": "WAJIB (SEPIHAK)"
+    }
+  ],
+  "MDN_GATEWAY": [
+    {
+      "cut_off": "04:00",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "08:00",
+      "status_rute": "WAJIB (SEPIHAK)"
+    }
+  ],
+  "PTI_GATEWAY": [
+    {
+      "cut_off": "02:00",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "04:00",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "10:00",
+      "status_rute": "WAJIB (SEPIHAK)"
+    }
+  ],
+  "TGL_GATEWAY": [
+    {
+      "cut_off": "02:00",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "04:00",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "10:00",
+      "status_rute": "WAJIB (SEPIHAK)"
+    }
+  ],
+  "JOG_GATEWAY": [
+    {
+      "cut_off": "04:00",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "10:00",
+      "status_rute": "WAJIB (SEPIHAK)"
+    }
+  ],
+  "JBR_GATEWAY": [
+    {
+      "cut_off": "04:00",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "08:00",
+      "status_rute": "WAJIB (SEPIHAK)"
+    }
+  ],
+  "PRO_GATEWAY": [
+    {
+      "cut_off": "04:00",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "10:00",
+      "status_rute": "WAJIB (SEPIHAK)"
+    }
+  ],
+  "BKS_GATEWAY": [
+    {
+      "cut_off": "14:00",
+      "status_rute": "WAJIB (SEPIHAK)"
+    }
+  ],
+  "DJB_GATEWAY": [
+    {
+      "cut_off": "08:00",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "14:00",
+      "status_rute": "WAJIB (SEPIHAK)"
+    }
+  ],
+  "DPS_GATEWAY": [
+    {
+      "cut_off": "14:00",
+      "status_rute": "WAJIB (SEPIHAK)"
+    }
+  ],
+  "MES_GATEWAY": [
+    {
+      "cut_off": "07:58",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "07:59",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "08:00",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "11:57",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "11:58",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "11:59",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "14:00",
+      "status_rute": "WAJIB (SEPIHAK)"
+    }
+  ],
+  "PDG_GATEWAY": [
+    {
+      "cut_off": "08:00",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "14:00",
+      "status_rute": "WAJIB (SEPIHAK)"
+    }
+  ],
+  "PKU_GATEWAY": [
+    {
+      "cut_off": "07:59",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "08:00",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "11:59",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "14:00",
+      "status_rute": "WAJIB (SEPIHAK)"
+    }
+  ],
+  "PLM_GATEWAY": [
+    {
+      "cut_off": "05:00",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "07:59",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "08:00",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "14:00",
+      "status_rute": "WAJIB (SEPIHAK)"
+    }
+  ],
+  "PMH_GATEWAY": [
+    {
+      "cut_off": "08:00",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "14:00",
+      "status_rute": "WAJIB (SEPIHAK)"
+    }
+  ],
+  "PMH2_GATEWAY": [
+    {
+      "cut_off": "08:00",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "14:00",
+      "status_rute": "WAJIB (SEPIHAK)"
+    }
+  ],
+  "TKG_GATEWAY": [
+    {
+      "cut_off": "06:59",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "07:00",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "07:59",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "08:00",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "11:57",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "11:58",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "11:59",
+      "status_rute": "REGULER (SEPIHAK)"
+    },
+    {
+      "cut_off": "14:00",
+      "status_rute": "WAJIB (SEPIHAK)"
+    }
+  ],
+  "GSK2_GATEWAY": [
+    {
+      "cut_off": "01:00",
+      "status_rute": "REGULER (DUA PIHAK)"
+    },
+    {
+      "cut_off": "04:00",
+      "status_rute": "REGULER (DUA PIHAK)"
+    },
+    {
+      "cut_off": "08:00",
+      "status_rute": "WAJIB (DUA PIHAK)"
+    }
+  ]
+}

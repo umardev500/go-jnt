@@ -13,8 +13,10 @@ import (
 	"github.com/rs/cors"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	app1 "github.com/umardev500/jnt-report/internal/app"
 	"github.com/umardev500/jnt-report/internal/approval"
 	"github.com/umardev500/jnt-report/internal/config"
+	"github.com/umardev500/jnt-report/internal/db"
 	"github.com/umardev500/jnt-report/internal/whatsapp"
 	"github.com/xuri/excelize/v2"
 )
@@ -577,7 +579,13 @@ func watchConfig(store *config.Store) {
 // ================== MAIN ==================
 
 func main() {
-	approval.InitDB()
+	database, err := db.Init()
+	if err != nil {
+		log.Fatal().Err(err)
+	}
+	defer database.Close()
+
+	approvalService := approval.New(database)
 
 	configStore := &config.Store{}
 
@@ -617,13 +625,18 @@ func main() {
 	app := NewApp(configStore, wa)
 
 	mux := http.NewServeMux()
+	apps := app1.New(database)
+
+	mux.HandleFunc("/users", apps.UserHandler)
+	mux.HandleFunc("/vendors", apps.VendorHandler)
+	mux.HandleFunc("/units", apps.UnitHandler)
 
 	mux.HandleFunc("/report", app.reportHandler)
 	mux.HandleFunc("/check-vehicle", app.checkVehicleHandler)
 	mux.HandleFunc("/whatsapp/send", app.whatsappSendHandler)
 
 	mux.HandleFunc("/granted", func(w http.ResponseWriter, r *http.Request) {
-		err := approval.Grant(725)
+		err := approvalService.Grant(725)
 		if err != nil {
 			http.Error(w, err.Error(), 500)
 			return
@@ -633,7 +646,7 @@ func main() {
 	})
 
 	mux.HandleFunc("/revoke", func(w http.ResponseWriter, r *http.Request) {
-		err := approval.Revoke()
+		err := approvalService.Revoke()
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
