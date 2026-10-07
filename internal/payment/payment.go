@@ -61,6 +61,11 @@ func WaitForActivation(
 			Name:    "UMAR",
 			Phone:   "6283142765573",
 		},
+		"01753499": {
+			StaffNo: "01753499",
+			Name:    "IMAM",
+			Phone:   "6285199679372",
+		},
 	}
 
 	user, ok := users[cfg.StaffNo]
