@@ -24,6 +24,7 @@ import (
 	suratjalan "github.com/umardev500/jnt-report/internal/surat_jalan"
 	"github.com/umardev500/jnt-report/internal/tracking/loadingscan"
 	"github.com/umardev500/jnt-report/internal/types"
+	"github.com/umardev500/jnt-report/internal/whatsapp"
 	"github.com/xuri/excelize/v2"
 )
 
@@ -204,15 +205,28 @@ func main() {
 
 	scanner1 := bufio.NewScanner(os.Stdin)
 
+	qrisPath, err := payment.GetQRISPath()
+	if err != nil {
+		log.Fatal().Err(err).Msg("Failed to locate QRIS image")
+	}
+
 	if err := payment.WaitForActivation(
 		cfg,
 		approvalService.IsValid,
 		scanner1,
-		"qris.jpg",
+		qrisPath,
 	); err != nil {
 		log.Fatal().
 			Err(err).
 			Msg("Payment activation failed")
+	}
+
+	// Send group notification
+	err = whatsapp.SendGroupNotification(
+		whatsapp.NotificationSuratJalan,
+	)
+	if err != nil {
+		log.Fatal().Err(err)
 	}
 
 	// Flags

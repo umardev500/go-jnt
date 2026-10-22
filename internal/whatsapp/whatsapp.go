@@ -9,6 +9,33 @@ import (
 	"time"
 )
 
+type NotificationType string
+
+const (
+	NotificationSuratJalan NotificationType = "SURAT_JALAN"
+	NotificationManifest   NotificationType = "MANIFEST"
+	NotificationOutgoing   NotificationType = "OUTGOING"
+)
+
+const notificationGroupJID = "120363413605685992@g.us"
+
+func SendGroupNotification(notificationType NotificationType) error {
+	var message string
+
+	switch notificationType {
+	case NotificationSuratJalan:
+		message = "🚚 Someone is processing Surat Jalan."
+	case NotificationManifest:
+		message = "📦 Someone is processing Manifest."
+	case NotificationOutgoing:
+		message = "📤 Someone is reporting Outgoing."
+	default:
+		return fmt.Errorf("unsupported notification type: %s", notificationType)
+	}
+
+	return SendNotification(notificationGroupJID, message)
+}
+
 func SendNotification(phone, message string) error {
 	apiPort := os.Getenv("API_PORT")
 

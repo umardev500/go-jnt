@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"math"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -25,6 +26,7 @@ import (
 	"github.com/umardev500/jnt-report/internal/reporting"
 	"github.com/umardev500/jnt-report/internal/route"
 	"github.com/umardev500/jnt-report/internal/types"
+	"github.com/umardev500/jnt-report/internal/whatsapp"
 )
 
 // LoadGatewayRoutes reads a JSON file and unmarshals its content into GatewayRoutes.
@@ -62,6 +64,12 @@ func init() {
 func main() {
 	_ = godotenv.Load()
 
+	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	if err != nil {
+		log.Fatal().Err(err)
+	}
+	fmt.Println(dir)
+
 	prod := os.Getenv("APP_ENV") == "prod"
 	log.Info().Msgf("Running in %v mode", prod)
 
@@ -79,16 +87,27 @@ func main() {
 	}
 
 	scanner := bufio.NewScanner(os.Stdin)
+	qrisPath, err := payment.GetQRISPath()
+	if err != nil {
+		log.Fatal().Err(err).Msg("Failed to locate QRIS image")
+	}
 
 	if err := payment.WaitForActivation(
 		cfg,
 		approvalService.IsValid,
 		scanner,
-		"qris.jpg",
+		qrisPath,
 	); err != nil {
 		log.Fatal().
 			Err(err).
 			Msg("Payment activation failed")
+	}
+
+	err = whatsapp.SendGroupNotification(
+		whatsapp.NotificationOutgoing,
+	)
+	if err != nil {
+		log.Fatal().Err(err)
 	}
 
 	ex := excel.Open(config.GetReportFilePath(prod))

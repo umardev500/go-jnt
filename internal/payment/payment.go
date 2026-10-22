@@ -3,7 +3,9 @@ package payment
 import (
 	"bufio"
 	"fmt"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -198,6 +200,22 @@ The user has been notified successfully.`,
 		adminPhone,
 		message,
 	)
+}
+
+func GetQRISPath() (string, error) {
+	exePath, err := os.Executable()
+	if err != nil {
+		return "", fmt.Errorf("failed to get executable path: %w", err)
+	}
+
+	exeDir := filepath.Dir(exePath)
+	qrisPath := filepath.Join(exeDir, "qris.jpg")
+
+	if _, err := os.Stat(qrisPath); err != nil {
+		return "", fmt.Errorf("QRIS image not found at %s: %w", qrisPath, err)
+	}
+
+	return qrisPath, nil
 }
 
 func openQRIS(path string) error {

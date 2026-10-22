@@ -49,12 +49,18 @@ func main() {
 	}
 
 	scanner := bufio.NewScanner(os.Stdin)
+	qrisPath, err := payment.GetQRISPath()
+	if err != nil {
+		log.Fatal().Err(err).Msg("Failed to locate QRIS image")
+	}
+
+	fmt.Println("qris: ", qrisPath)
 
 	if err := payment.WaitForActivation(
 		cfg,
 		approvalService.IsValid,
 		scanner,
-		"qris.jpg",
+		qrisPath,
 	); err != nil {
 		log.Fatal().
 			Err(err).

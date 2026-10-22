@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -479,6 +480,77 @@ func (a *App) whatsappSendHandler(
 	})
 }
 
+func (app *App) uploadQrisHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Limit upload size to 10 MB.
+	r.Body = http.MaxBytesReader(w, r.Body, 10<<20)
+
+	// Read the uploaded file from multipart field "file".
+	file, _, err := r.FormFile("file")
+	if err != nil {
+		http.Error(w, "Missing or invalid file upload", http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	// Validate that the uploaded file is a JPEG image.
+	header := make([]byte, 512)
+	n, err := file.Read(header)
+	if err != nil && err != io.EOF {
+		http.Error(w, "Failed to read uploaded file", http.StatusBadRequest)
+		return
+	}
+
+	if http.DetectContentType(header[:n]) != "image/jpeg" {
+		http.Error(w, "Only JPEG images are allowed", http.StatusBadRequest)
+		return
+	}
+
+	// Reset file position after content detection.
+	if _, err := file.Seek(0, io.SeekStart); err != nil {
+		http.Error(w, "Failed to process uploaded file", http.StatusInternalServerError)
+		return
+	}
+
+	// Save to the application's current working directory.
+	dest := filepath.Join(".", "qris.jpg")
+
+	// Write to a temporary file first to avoid partial uploads.
+	tmp, err := os.CreateTemp(".", "qris-*.tmp")
+	if err != nil {
+		http.Error(w, "Failed to create temporary file", http.StatusInternalServerError)
+		return
+	}
+
+	tmpName := tmp.Name()
+	defer os.Remove(tmpName)
+
+	if _, err := io.Copy(tmp, file); err != nil {
+		tmp.Close()
+		http.Error(w, "Failed to save uploaded file", http.StatusInternalServerError)
+		return
+	}
+
+	if err := tmp.Close(); err != nil {
+		http.Error(w, "Failed to save uploaded file", http.StatusInternalServerError)
+		return
+	}
+
+	// Replace the existing qris.jpg.
+	if err := os.Rename(tmpName, dest); err != nil {
+		http.Error(w, "Failed to replace qris.jpg", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write([]byte(`{"message":"QRIS uploaded successfully","file":"qris.jpg"}`))
+}
+
 // ================== HELPERS ==================
 func loadUnits(filePath string) (map[string]ExcelRow, error) {
 	f, err := excelize.OpenFile(filePath)
@@ -634,6 +706,7 @@ func main() {
 	mux.HandleFunc("/report", app.reportHandler)
 	mux.HandleFunc("/check-vehicle", app.checkVehicleHandler)
 	mux.HandleFunc("/whatsapp/send", app.whatsappSendHandler)
+	mux.HandleFunc("/whatsapp/upload-qris", app.uploadQrisHandler)
 
 	mux.HandleFunc("/granted", func(w http.ResponseWriter, r *http.Request) {
 		err := approvalService.Grant(725)

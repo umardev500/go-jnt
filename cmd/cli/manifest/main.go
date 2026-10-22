@@ -19,6 +19,7 @@ import (
 	"github.com/umardev500/jnt-report/internal/manifest"
 	"github.com/umardev500/jnt-report/internal/payment"
 	"github.com/umardev500/jnt-report/internal/pivot"
+	"github.com/umardev500/jnt-report/internal/whatsapp"
 	"github.com/xuri/excelize/v2"
 	"gopkg.in/yaml.v3"
 )
@@ -50,15 +51,28 @@ func main() {
 
 	scanner := bufio.NewScanner(os.Stdin)
 
+	qrisPath, err := payment.GetQRISPath()
+	if err != nil {
+		log.Fatal().Err(err).Msg("Failed to locate QRIS image")
+	}
+
 	if err := payment.WaitForActivation(
 		cfg,
 		approvalService.IsValid,
 		scanner,
-		"qris.jpg",
+		qrisPath,
 	); err != nil {
 		log.Fatal().
 			Err(err).
 			Msg("Payment activation failed")
+	}
+
+	// ✅ send group notification
+	err = whatsapp.SendGroupNotification(
+		whatsapp.NotificationManifest,
+	)
+	if err != nil {
+		log.Fatal().Err(err)
 	}
 
 	if len(os.Args) < 2 {
