@@ -10,6 +10,8 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/umardev500/jnt-report/internal/config"
+	"github.com/umardev500/jnt-report/internal/helper"
+	"github.com/umardev500/jnt-report/internal/models"
 	"github.com/umardev500/jnt-report/internal/whatsapp"
 )
 
@@ -40,39 +42,15 @@ Your payment has been successfully confirmed.
 Thank you for your payment!`, name)
 }
 
-type User struct {
-	Name    string
-	StaffNo string
-	Phone   string
-}
-
 func WaitForActivation(
 	cfg *config.Config,
 	isApproved func() bool,
 	scanner *bufio.Scanner,
 	qrisPath string,
 ) error {
-	users := map[string]User{
-		"01830317": {
-			StaffNo: "01830317",
-			Name:    "RAHMAWAN",
-			Phone:   "6281389741086",
-		},
-		"01829395": {
-			StaffNo: "01829395",
-			Name:    "UMAR",
-			Phone:   "6283142765573",
-		},
-		"01753499": {
-			StaffNo: "01753499",
-			Name:    "IMAM",
-			Phone:   "6285199679372",
-		},
-	}
-
-	user, ok := users[cfg.StaffNo]
-	if !ok {
-		return fmt.Errorf("user not found for staff no: %s", cfg.StaffNo)
+	user, err := helper.GetUser(cfg.StaffNo)
+	if err != nil {
+		return err
 	}
 
 	// Already activated.
@@ -154,7 +132,7 @@ func WaitForActivation(
 	}
 }
 
-func notifyAdminPaymentSubmitted(user User) error {
+func notifyAdminPaymentSubmitted(user models.User) error {
 	message := fmt.Sprintf(
 		`💳 *Payment Submitted*
 
@@ -178,7 +156,7 @@ Please verify the payment and approve the user.`,
 	)
 }
 
-func notifyAdminPaymentConfirmed(user User) error {
+func notifyAdminPaymentConfirmed(user models.User) error {
 	message := fmt.Sprintf(
 		`💰 *Payment Confirmed*
 

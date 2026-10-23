@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/fsnotify/fsnotify"
+	"github.com/joho/godotenv"
 	"github.com/rs/cors"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -651,6 +652,8 @@ func watchConfig(store *config.Store) {
 // ================== MAIN ==================
 
 func main() {
+	_ = godotenv.Load()
+
 	database, err := db.Init()
 	if err != nil {
 		log.Fatal().Err(err)

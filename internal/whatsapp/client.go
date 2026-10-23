@@ -9,10 +9,17 @@ import (
 
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/store/sqlstore"
+	"go.mau.fi/whatsmeow/types"
 	waLog "go.mau.fi/whatsmeow/util/log"
 
 	"github.com/mdp/qrterminal/v3"
 )
+
+type CommandHandler func(
+	chat types.JID,
+	sender types.JID,
+	command string,
+) string
 
 type Group struct {
 	Name string
@@ -20,8 +27,9 @@ type Group struct {
 }
 
 type Client struct {
-	client    *whatsmeow.Client
-	container *sqlstore.Container
+	client         *whatsmeow.Client
+	container      *sqlstore.Container
+	CommandHandler CommandHandler
 }
 
 func New() (*Client, error) {
@@ -146,4 +154,10 @@ func (c *Client) GetGroups(ctx context.Context) ([]Group, error) {
 	}
 
 	return result, nil
+}
+
+func (w *Client) SetCommandHandler(
+	handler CommandHandler,
+) {
+	w.CommandHandler = handler
 }
