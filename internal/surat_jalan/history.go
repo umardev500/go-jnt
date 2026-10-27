@@ -141,7 +141,24 @@ func CreateHistory(ex *excel.ExcelFile, routes types.GatewayRoutes, dt *detail.S
 
 	f.InsertRows("Sheet1", newRow, 1)
 	ex.SetValue(newRow, "No.Surat Jalan", noSurat)
-	ex.SetValue(newRow, "Tanggal Operasi", planDate)
+
+	fmtStr := "yyyy-mm-dd"
+
+	styleID, err := ex.File.NewStyle(&excelize.Style{
+		CustomNumFmt: &fmtStr,
+	})
+	if err != nil {
+		log.Error().Err(err).Msg("Error creating style")
+		return 0, err
+	}
+
+	// Tanggal Operasi - Column B
+	cell := fmt.Sprintf("B%d", newRow)
+
+	ex.File.SetCellValue("Sheet1", cell, planDate)
+	ex.File.SetCellStyle("Sheet1", cell, cell, styleID)
+
+	// ex.SetValue(newRow, "Tanggal Operasi", planDate)
 	ex.SetValue(newRow, "Nama Rute", routeCode)
 	ex.SetValue(newRow, "Plat Nomor", shipment.PlateNumber)
 	ex.SetValue(newRow, "Jenis Mobil", shipment.VehicleTypeName)
@@ -154,8 +171,8 @@ func CreateHistory(ex *excel.ExcelFile, routes types.GatewayRoutes, dt *detail.S
 	// ex.SetValue(newRow, "Waktu Rilis", now)
 	// ex.SetValue(newRow, "Waktu Rilis", now.Format("02/01/2006 15:04:05"))
 
-	fmtStr := "dd/mm/yyyy hh:mm:ss"
-	styleID, err := ex.File.NewStyle(&excelize.Style{
+	fmtStr = "yyyy-mm-dd hh:mm"
+	styleID, err = ex.File.NewStyle(&excelize.Style{
 		CustomNumFmt: &fmtStr,
 	})
 	if err != nil {
@@ -163,14 +180,14 @@ func CreateHistory(ex *excel.ExcelFile, routes types.GatewayRoutes, dt *detail.S
 		return 0, err
 	}
 
-	cell := fmt.Sprintf("L%d", newRow)
+	cell = fmt.Sprintf("L%d", newRow)
 
 	ex.File.SetCellValue("Sheet1", cell, now)
 	ex.File.SetCellStyle("Sheet1", cell, cell, styleID)
 
 	// Set jadwal keberangkatan to use date style
 
-	fmtStr = "dd/mm/yyyy"
+	fmtStr = "yyyy-mm-dd"
 	styleID, err = ex.File.NewStyle(&excelize.Style{
 		CustomNumFmt: &fmtStr,
 		Alignment: &excelize.Alignment{
@@ -179,7 +196,7 @@ func CreateHistory(ex *excel.ExcelFile, routes types.GatewayRoutes, dt *detail.S
 		},
 	})
 	cell = fmt.Sprintf("G%d", newRow)
-	ex.File.SetCellValue("Sheet1", cell, appTrackDepartureTime.Format("02/01/2006"))
+	ex.File.SetCellValue("Sheet1", cell, appTrackDepartureTime)
 	ex.File.SetCellStyle("Sheet1", cell, cell, styleID)
 
 	// ex.File.SetCellValue("Sheet1", "L:"+strconv.Itoa(newRow), now)
