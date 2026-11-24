@@ -49,6 +49,21 @@ func main() {
 
 	approvalService := approval.New(database)
 
+	// Check for limit
+	total, err := approvalService.TodayCreated()
+	if err != nil {
+		log.Fatal().Err(err).Msg("Failed to check today's created count")
+		return
+	}
+
+	if total >= 1 {
+		log.Fatal().Msg("Daily limit reached")
+		return
+	}
+
+	// Log for limite is available
+	log.Info().Msg("Limit available")
+
 	scanner := bufio.NewScanner(os.Stdin)
 
 	qrisPath, err := payment.GetQRISPath()
@@ -196,6 +211,12 @@ func main() {
 	if err := os.Rename(manifestPath, finalPath); err != nil {
 		fmt.Printf("move file: %v", err)
 	}
+
+	// Increment today created
+	if err := approvalService.IncrementTodayCreated(); err != nil {
+		log.Fatal().Err(err).Msg("Failed to increment today created")
+	}
+	log.Info().Msg("Manifest generated successfully")
 }
 
 func generateManifest(
