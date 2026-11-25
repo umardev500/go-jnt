@@ -103,16 +103,52 @@ func GetLastExportedRecordWithRetry(startTime, endTime string, maxRetries, delay
 		} `json:"data"`
 	}
 
-	for i := 0; i < maxRetries; i++ {
-		url := fmt.Sprintf("https://jmsgw.jntexpress.id/transportation/tmsExportTransportReport/task?endTime=%s&startTime=%s&current=1&size=20&moduleType=", endTime, startTime)
+	url := fmt.Sprintf(
+		"https://jmsgw.jntexpress.id/transportation/tmsExportTransportReport/task?endTime=%s&startTime=%s&current=1&size=20&moduleType=",
+		endTime,
+		startTime,
+	)
+
+	for i := range maxRetries {
+		attempt := i + 1
+
+		log.Info().
+			Int("attempt", attempt).
+			Int("max_retries", maxRetries).
+			Msg("Checking exported record")
+
 		if err := httpclient.GetJSON(url, headers, &res); err != nil {
+			log.Error().
+				Err(err).
+				Int("attempt", attempt).
+				Msg("Failed to fetch exported record")
+
 			return nil, err
 		}
+
 		if len(res.Data.Records) > 0 && res.Data.Records[0].OssUrl != "" {
+			log.Info().
+				Int("attempt", attempt).
+				Msg("Exported record is ready")
+
 			return &res.Data.Records[0], nil
 		}
-		wait(delayMs)
+
+		if attempt < maxRetries {
+			log.Warn().
+				Int("attempt", attempt).
+				Int("max_retries", maxRetries).
+				Int("delay_ms", delayMs).
+				Msg("Export not ready, retrying...")
+
+			wait(delayMs)
+		}
 	}
+
+	log.Error().
+		Int("max_retries", maxRetries).
+		Msg("Export is not ready after maximum retries")
+
 	return nil, errors.New("export not ready")
 }
 
@@ -188,7 +224,7 @@ func DownloadShipmentFile(shipmentNo string, token string, prod bool) error {
 	// startTime := "2026-04-08+00:00:00"
 	// endTime := "2026-04-08+23:59:59"
 
-	lastRecord, err := GetLastExportedRecordWithRetry(startOfDay.Format(layout), endOfDay.Format(layout), 10, 2000, token)
+	lastRecord, err := GetLastExportedRecordWithRetry(startOfDay.Format(layout), endOfDay.Format(layout), 50, 3000, token)
 	if err != nil {
 		return err
 	}
