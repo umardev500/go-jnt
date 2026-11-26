@@ -192,15 +192,26 @@ func main() {
 		fmt.Printf("%d. 🔎 Processing sheet: %s\n", sheetNum, sheet)
 
 		count := 0
-		for _, code := range codes {
+		for i, code := range codes {
 			count++
-			fmt.Printf("%d. 🔎 Processing code: %s\n", count, code)
+
+			fmt.Printf(
+				"%d. 🔎 Processing sheet: %s[%d] | Code: %s (%d/%d)\n",
+				count,
+				sheet,
+				sheetNum,
+				code,
+				i+1,
+				len(codes),
+			)
 
 			if err := runJob(sheet, code, codesBySheet, cfg.Token, prod); err != nil {
 				log.Error().
 					Err(err).
 					Str("sheet", sheet).
 					Str("code", code).
+					Int("code_index", i+1).
+					Int("total_codes", len(codes)).
 					Msg("job failed")
 
 				continue // don't stop entire batch
